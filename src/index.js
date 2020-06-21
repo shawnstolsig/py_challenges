@@ -3,6 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux'
+import 'typeface-roboto'
+import { CssBaseline } from '@material-ui/core'
 
 // project imports
 import './index.css';
@@ -16,6 +18,7 @@ const store = createStore(reducers, middleware)
 const app = (
   <React.StrictMode>
     <Provider store={store}>
+      <CssBaseline />
       <App />
     </Provider>
   </React.StrictMode>

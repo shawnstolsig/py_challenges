@@ -1,37 +1,77 @@
 // package imports 
 import React from 'react'
 import { connect } from 'react-redux'
-import { NavLink } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'
+import { makeStyles } from '@material-ui/core/styles';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Link
+} from '@material-ui/core'
+import {
+  Menu as MenuIcon,
+} from '@material-ui/icons'
 
 // project imports
 import { handleLogoutUser } from '../actions/auth'
 
-// some styles for active link
-const styles = {
-  active: {
-    fontWeight: 'bold'
+// Material-UI's style hook
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1,
   },
-  link: {
-    margin: 6
-  }
-}
+  menuButton: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+}));
 
-function Navbar({authedUser, dispatch}) {
+
+function Navbar({ authedUser, dispatch }) {
+  const classes = useStyles();
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-      <div>
-        <NavLink exact to="/" activeStyle={styles.active} style={styles.link}>Home</NavLink>
-      </div>
-      {authedUser && <div>Hello, {authedUser.username}</div>}
-      <div>
-        {authedUser 
-        ? <button onClick={() => dispatch(handleLogoutUser())}>Logout</button>
-        : <NavLink exact to="/login" activeStyle={styles.active}  style={styles.link}>Login</NavLink>}
-      </div>
+    <div className={classes.root}>
+      <AppBar position="static">
+        <Toolbar>
+          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" className={classes.title}>
+            <Link component={RouterLink} to="/" color="inherit" underline="none">
+              CS Challenges
+            </Link>
+          </Typography>
+          {authedUser
+            ? 
+              <React.Fragment>
+                <Typography variant="h6" className={classes.title}>
+                  {`Hello, ${authedUser.username}!`}
+                </Typography>
+                <Button
+                  color="inherit"
+                  onClick={() => dispatch(handleLogoutUser())}
+                  >Logout
+                </Button>
+              </React.Fragment>
+            : <Button 
+                color="inherit" 
+                component={RouterLink} 
+                to="/login"
+                >Login
+              </Button>
+              
+          }
+        </Toolbar>
+      </AppBar>
     </div>
   )
 }
-
 
 function mapStateToProps(state) {
   return {
