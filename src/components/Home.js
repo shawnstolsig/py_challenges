@@ -2,30 +2,17 @@
 import React from 'react'
 import axios from 'axios'
 import { connect } from 'react-redux'
+import {
+  Container,
+  Typography
+} from '@material-ui/core'
 
 function Home() {
-  // some state for testing response from backend
-  const [message, setMessage] = React.useState('Backend not yet connected...')
-
-  // on initial render, retrieve message from backend
-  React.useEffect(() => {
-    axios({
-      method: 'get',
-      url: `${process.env.REACT_APP_API_URL}api/v1/`,
-      data: {},
-      headers: {},
-    })
-      .then(response => {
-        setMessage(response.data.message)
-      })
-      .catch(error => { console.log(error) })
-  }, [])
-
   return (
-    <div>
-      <h1>Home Component</h1>
-      <p>{message}</p>
-    </div>
+    <Container>
+      <Typography variant="h1">Hello</Typography>
+      <iframe src="https://trinket.io/embed/python/b9eca3d1b5" width="100%" height="600" frameborder="0" marginwidth="0" marginheight="0" allowfullscreen></iframe>
+    </Container>
   )
 }
 
