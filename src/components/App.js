@@ -1,6 +1,7 @@
 // package imports
 import React from 'react'
 import { connect } from 'react-redux'
+import { makeStyles } from '@material-ui/core/styles'
 import {
   BrowserRouter as Router,
   Switch,
@@ -8,15 +9,21 @@ import {
 } from 'react-router-dom'
 
 // project imports
-import Navbar from './Navbar'
+import Nav from './Nav'
 import { handleAutoLogin } from '../actions/auth'
 
 // code splitting/performance: only load components when required
 const Home = React.lazy(() => import('./Home'))
 const Login = React.lazy(() => import('./Login'))
 
-function App({dispatch}) {
+// style classes
+const useStyles = makeStyles((theme) => ({
+  // necessary for content to be below app bar
+  toolbar: theme.mixins.toolbar,
+}))
 
+function App({ dispatch }) {
+  const classes = useStyles()
   // check for token to autologin
   React.useEffect(() => {
     dispatch(handleAutoLogin())
@@ -24,19 +31,20 @@ function App({dispatch}) {
 
   return (
     <Router>
-      <Navbar />
+      <Nav />
+      <div className={classes.toolbar} />
       <React.Suspense fallback={<h1>Loading...</h1>}>
         <Switch>
           <Route exact path="/" component={Home} />
           <Route path="/login" component={Login} />
-          <Route render={()=><h1>404: Page Not Found</h1>} />
+          <Route render={() => <h1>404: Page Not Found</h1>} />
         </Switch>
       </React.Suspense>
     </Router>
   );
 }
 
-function mapStateToProps(state){
+function mapStateToProps(state) {
   return {}
 }
 

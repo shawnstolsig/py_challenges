@@ -21,6 +21,7 @@ import {
 
 // project imports
 import { handleLoginUser, handleRegisterUser } from '../actions/auth'
+import Copyright from './Copyright'
 
 // Material-UI's style hook
 const useStyles = makeStyles((theme) => ({
@@ -42,20 +43,6 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(3, 0, 2),
   },
 }));
-
-// component: copyright
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="#">
-        CS Challenges
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 function Login({ dispatch, history }) {
   const classes = useStyles();
@@ -85,7 +72,6 @@ function Login({ dispatch, history }) {
         password,
       }, history))
     }
-    
   }
 
   // helper for checking if form submit button is enabled/disabled
