@@ -83,7 +83,7 @@ function Challenge({ match }) {
       {/* Seperate grid for Ace Editor and pypy.js output */}
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Editor startingCode={'# Type your code here...'} />
+          <Editor startingCode={'print("Hello world")' } />
         </Grid>
       </Grid>
 

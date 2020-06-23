@@ -30,7 +30,10 @@
     "postinstall": "npm run build"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "globals": {
+      "pyodide": "writeable"
+    }
   },
   "browserslist": {
     "production": [
