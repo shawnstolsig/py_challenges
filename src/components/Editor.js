@@ -19,12 +19,6 @@ function Editor({startingCode}) {
     // editor load function
     const onEditorLoad = () => console.log("Editor has loaded.")
 
-    // pyodide 
-    languagePluginLoader.then(function () {
-        setOutput(pyodide.runPython('import sys\nsys.version'));
-        setOutput.log(output.concat('\n', pyodide.runPython('print(1 + 2)')));
-    });
-
     return (
         <React.Fragment>
             <AceEditor
