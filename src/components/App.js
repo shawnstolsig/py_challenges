@@ -7,6 +7,10 @@ import {
   Switch,
   Route
 } from 'react-router-dom'
+import {
+  Typography,
+  Container
+} from '@material-ui/core'
 
 // project imports
 import Nav from './Nav'
@@ -15,11 +19,19 @@ import { handleAutoLogin } from '../actions/auth'
 // code splitting/performance: only load components when required
 const Home = React.lazy(() => import('./Home'))
 const Login = React.lazy(() => import('./Login'))
+const Challenge = React.lazy(() => import('./Challenge'))
 
 // style classes
 const useStyles = makeStyles((theme) => ({
+  root: {
+    display: 'flex',
+  },
   // necessary for content to be below app bar
   toolbar: theme.mixins.toolbar,
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+  },
 }))
 
 function App({ dispatch }) {
@@ -31,15 +43,20 @@ function App({ dispatch }) {
 
   return (
     <Router>
-      <Nav />
-      <div className={classes.toolbar} />
-      <React.Suspense fallback={<h1>Loading...</h1>}>
-        <Switch>
-          <Route exact path="/" component={Home} />
-          <Route path="/login" component={Login} />
-          <Route render={() => <h1>404: Page Not Found</h1>} />
-        </Switch>
-      </React.Suspense>
+      <div className={classes.root}>
+        <Nav />
+        <Container className={classes.content}>
+          <div className={classes.toolbar} />
+          <React.Suspense fallback={<Typography variant="h5">Loading...</Typography>}>
+            <Switch>
+              <Route exact path="/" component={Home} />
+              <Route path="/login" component={Login} />
+              <Route path="/:id" component={Challenge} />
+              <Route render={() => <h1>404: Page Not Found</h1>} />
+            </Switch>
+          </React.Suspense>
+        </Container>
+      </div>
     </Router>
   );
 }
