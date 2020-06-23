@@ -7,10 +7,11 @@ import {
   Divider,
   Grid
 } from '@material-ui/core'
+import { Description } from '@material-ui/icons'
 
 // project imports
 import challengeData from '../content/challenges'
-import { Description } from '@material-ui/icons'
+import Editor from './Editor'
 
 // set up classes for styles
 const useStyles = makeStyles((theme) => ({
@@ -30,8 +31,12 @@ const useStyles = makeStyles((theme) => ({
 
 
 function Challenge({ match }) {
+  // hooks and state
   const classes = useStyles()
+
+  // get information about the challenge
   const { id, name, description, prompt } = challengeData[match.params.id]
+
 
   return (
     <div>
@@ -74,6 +79,14 @@ function Challenge({ match }) {
         </Grid>
 
       </Grid>
+
+      {/* Seperate grid for Ace Editor and pypy.js output */}
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Editor startingCode={'# Type your code here...'} />
+        </Grid>
+      </Grid>
+
     </div>
   )
 }
