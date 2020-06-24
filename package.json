@@ -11,6 +11,7 @@
     "ace-builds": "^1.4.11",
     "autoprefixer": "^9.8.0",
     "axios": "^0.19.2",
+    "console-feed": "^3.0.0",
     "jwt-decode": "^2.2.0",
     "react": "^16.13.1",
     "react-ace": "^9.0.0",

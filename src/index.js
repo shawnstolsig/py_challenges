@@ -16,12 +16,12 @@ import middleware from './middleware'
 const store = createStore(reducers, middleware)
 
 const app = (
-  <React.StrictMode>
+  // <React.StrictMode>
     <Provider store={store}>
       <CssBaseline />
       <App />
     </Provider>
-  </React.StrictMode>
+  //</React.StrictMode> 
 )
 
 ReactDOM.render(
