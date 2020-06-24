@@ -120,7 +120,7 @@ function Nav({ authedUser, dispatch }) {
           </IconButton>
           <Typography variant="h6" className={classes.title}>
             <Link component={RouterLink} to="/" color="inherit" underline="none">
-              CS Challenges
+              PyChallenges
             </Link>
           </Typography>
           {authedUser

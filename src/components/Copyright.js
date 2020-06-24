@@ -7,8 +7,8 @@ function Copyright() {
     return (
         <Typography variant="body2" color="textSecondary" align="center">
             {'Copyright © '}
-            <Link color="inherit" href="#">
-                CS Challenges
+            <Link color="inherit" href="https://pychallenges.herokuapp.com/">
+                PyChallenges
         </Link>{' '}
             {new Date().getFullYear()}
             {'.'}

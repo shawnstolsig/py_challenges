@@ -57,6 +57,15 @@ function Editor({ startingCode, testsProp }) {
     // filter console logs.  ommited: 'warn'
     const visibleLogTypes = ['log', 'error', 'info', 'debug', 'command', 'result']
 
+    // check code before running.  mainly looks for malicious use of eval
+    const checkCode = (clearFlag) => {
+        if(code.includes('eval')){
+            alert("Use of eval() is not allowed, please remove.")
+        } else {
+            runCode(clearFlag)
+        }
+    }
+
     // run python code.  pyodide outputs to browser console, and will be captured by Console element
     const runCode = (clearFlag) => {
         if (clearFlag) {
@@ -79,7 +88,7 @@ function Editor({ startingCode, testsProp }) {
         <Grid container spacing={1}>
             <Grid item xs={4} lg={2}>
                 <Button 
-                    onClick={() => runCode(false)} 
+                    onClick={() => checkCode(false)} 
                     disabled={!pyodideLoaded} 
                     color="primary"
                     variant="contained"
