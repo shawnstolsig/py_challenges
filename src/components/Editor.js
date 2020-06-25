@@ -79,8 +79,10 @@ function Editor({ startingCode, testsProp }) {
 
     // run tests
     const runTests = () => {
-        console.log("Output: ", output)
-        console.log("Tests: ", tests)
+        let combinedCode = code + '\n' + tests
+        pyodide.runPython(combinedCode)
+        // console.log("Output: ", output)
+        // console.log("Tests: ", tests)
     }
 
 

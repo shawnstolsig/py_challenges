@@ -27,22 +27,16 @@ const challenges = {
 		startingCode: ``,
 		solution:
 `for n in range(1,100):
-  	if n % 3 == 0 and n % 5 != 0:
-    	print("fizz")
-  	elif n % 5 == 0 and n % 3 != 0:
-    	print("buzz")
-  	elif n % 3 == n % 5 == 0:
-    	print('Fizzbuzz')
-  	else:
-    	print(n)`
+  if n % 3 == 0 and n % 5 != 0:
+    print("fizz")
+  elif n % 5 == 0 and n % 3 != 0:
+    print("buzz")
+  elif n % 3 == n % 5 == 0:
+    print('Fizzbuzz')
+  else:
+		print(n)`
 		,
-		tests: [
-			{
-				title: "Put a test title here",
-				input: null,
-				output: 2
-			}
-		]
+		tests:``
 	},
 	trial: {
 		id: 1,
@@ -52,20 +46,49 @@ const challenges = {
 		prompt: 'Write a function that returns the number 2.',
 		startingCode:
 `def returnTwo():
-    # your code here
-    
-returnTwo()`,
+  # your code here
+`,
 		solution:
 `def returnTwo():
-    return 2`,
-		tests: [
-			{
-				title: "Returns 2 with no input?",
-				input: null,
-				output: 2
-			}
-		]
+  return 2`,
+		tests:
+`def test():
+  passed_flag = True
+  response_message = ''
+
+  try: 
+    returnTwo()
+
+    if returnTwo() is None:
+      passed_flag = False
+      response_message += "returnTwo() does not return a value." + "\\n"     
+
+    if returnTwo() != 2:
+      passed_flag = False
+      response_message += "returnTwo() does not return number 2." + "\\n"
+
+  except NameError: 
+    passed_flag = False
+    response_message += "Missing 'returnTwo' function." + "\\n"
+
+  if passed_flag: 
+    print("All tests passed.")
+    return True
+  else:
+    print("Tests did not pass:")
+    print(response_message)
+    return False
+test()
+`
 	}
 }
 
 export default challenges
+
+// tests: [
+// 	{
+// 		title: "Returns 2 with no input?",
+// 		input: null,
+// 		output: 2
+// 	}
+// ]
