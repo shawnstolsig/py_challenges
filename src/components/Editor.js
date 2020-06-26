@@ -35,7 +35,6 @@ function Editor({ startingCode, testsProp, id }) {
     const [output, setOutput] = React.useState({})                  // output of user's code
     const [pyodideLoaded, setPyodideLoaded] = React.useState(false) // indicates when pyodide is ready
     const [isCodeValid, setIsCodeValid] = React.useState(false)     // check user's code for eval() before executing
-    const [tests, setTests] = React.useState([])                    // tests for user's code
 
     // load piodide on initial render
     React.useEffect(() => {
@@ -50,7 +49,6 @@ function Editor({ startingCode, testsProp, id }) {
     // update state whenever challenge changes
     React.useEffect(() => {
         setCode(startingCode)
-        setTests(testsProp)
         setIsCodeValid(false)
 
         // clear python history, only if pyodide has already been loaded
@@ -124,36 +122,26 @@ function Editor({ startingCode, testsProp, id }) {
         }
         
         // print message
-        console.log("Code successful validated.")
+        console.log("Code successfully validated.")
         
         // enable test button
         setIsCodeValid(true)
 
     }
 
-    // an async version of running code
-    const runCodeAsync = () => {
-        const result = pyodide.runPythonAsync(code)
-            .then((result) => {
-                setOutput(result)
-                console.log("Your script returned (async): ", result)
-            })
-    }
-
     // run tests: combines user's code with testing code and runs altogether
     const runTests = () => {
-        // need to somehow clear python here.  pyodide.globals?
-        // or just grab the function of interest and run it?  test outputs?
-        // let combinedCode = code + '\n' + tests
-        // pyodide.runPython(combinedCode)
 
-        let testOutput = pyodide.globals[id](10,5)
-        if(assertEquals(testOutput, 15)){
-            console.log("Assert equals test passed")
-        }
-        else{
-            console.log("Assert equals test failed.")
-        }
+        // get tests object.  this will have each test as a separate key
+        let tests = testsProp(pyodide.globals[id])
+
+        // iterate through all tests and print passed/failed message
+        Object.keys(tests).forEach((x) => {
+            console.log(`Test: ${tests[x].name} - ${tests[x].result() ? "Passed" : "Failed"}`)
+        })
+
+        // reset code validation button
+        setIsCodeValid(false)
     }
 
     return (
