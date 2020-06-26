@@ -13,7 +13,9 @@ import { Hook, Console, Decode } from 'console-feed'
 
 // project imports
 import { languagePluginLoader } from '../pyodide/pyodide'
+import { assertEquals } from '../tests'
 
+// material UI classes for style
 const useStyles = makeStyles((theme) => ({
     console: {
         background: 'black',
@@ -22,33 +24,41 @@ const useStyles = makeStyles((theme) => ({
     }
 }))
 
-function Editor({ startingCode, testsProp }) {
+
+
+function Editor({ startingCode, testsProp, id }) {
     const classes = useStyles()
 
     // state 
-    const [code, setCode] = React.useState(startingCode)
-    const [output, setOutput] = React.useState({})
-    const [logs, setLogs] = React.useState([])
-    const [pyodideLoaded, setPyodideLoaded] = React.useState(false)
-    const [tests, setTests] = React.useState([])
+    const [code, setCode] = React.useState(startingCode)            // user's code
+    const [logs, setLogs] = React.useState([])                      // console for print statements
+    const [output, setOutput] = React.useState({})                  // output of user's code
+    const [pyodideLoaded, setPyodideLoaded] = React.useState(false) // indicates when pyodide is ready
+    const [isCodeValid, setIsCodeValid] = React.useState(false)     // check user's code for eval() before executing
+    const [tests, setTests] = React.useState([])                    // tests for user's code
 
     // load piodide on initial render
     React.useEffect(() => {
-        languagePluginLoader.then(() => {
-            setPyodideLoaded(true)
-            console.log(pyodide.runPython('import sys\nsys.version'));
-        });
+        loadPython()
     }, [])
 
-    // hook into console on initial render
+    // hook into browser console on initial render
     React.useEffect(() => {
         Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
     }, [])
 
-    // update code whenever startingCode changes 
+    // update state whenever challenge changes
     React.useEffect(() => {
         setCode(startingCode)
         setTests(testsProp)
+        setIsCodeValid(false)
+
+        // clear python history, only if pyodide has already been loaded
+        if(pyodideLoaded){
+            clearPythonHistory()
+            console.log("Python history cleared.")
+        }
+        
     }, [startingCode, testsProp])
 
     // editor load function (maybe do something else here with the UI?)
@@ -57,68 +67,138 @@ function Editor({ startingCode, testsProp }) {
     // filter console logs.  ommited: 'warn'
     const visibleLogTypes = ['log', 'error', 'info', 'debug', 'command', 'result']
 
-    // check code before running.  mainly looks for malicious use of eval
-    const checkCode = (clearFlag) => {
+    // load python interpreter. re-loaded after each code execution to clear history
+    const loadPython = () => {
+        // load new python instance
+        languagePluginLoader.then(() => {
+            // enable the button for running code
+            setPyodideLoaded(true)
+            
+            // print out the current version
+            console.log(pyodide.runPython('import sys\nsys.version'));
+            
+            // store the default objects for later use
+            pyodide.runPython('pyodide_dir = dir()')
+        });
+    }
+
+    // clears all previously created python variables/functions
+    const clearPythonHistory = () => {
+        // clear non-stock pyodide objects (except for the starting/default pyodide_dir)
+        pyodide.runPython(`
+                        for key in dir():
+                            if key not in pyodide_dir and key != 'pyodide_dir':
+                                del globals()[key]`)
+    }
+
+    // command for clearing console
+    const clearConsole = () => {
+        // clear console
+        setLogs([])
+        console.log("Console cleared.")
+    }
+
+    // resets code to starting code
+    const resetCode = () => {
+        setCode(startingCode)
+        setIsCodeValid(false)
+        clearPythonHistory()
+        console.log("Code reset.")
+    }
+
+    // run python code.  returns output of user code, and prints to console
+    const runCode = () => {
+
+        // verify eval() is not used
         if(code.includes('eval')){
-            alert("Use of eval() is not allowed, please remove.")
-        } else {
-            runCode(clearFlag)
+            alert("Use of eval() is not allowed.")
+            return 
         }
-    }
-
-    // run python code.  pyodide outputs to browser console, and will be captured by Console element
-    const runCode = (clearFlag) => {
-        if (clearFlag) {
-            setLogs([])
-            console.log("Console cleared.")
-        }
+        // run code to make sure it builds
         const result = pyodide.runPython(code)
-        console.log("Your script returned: ", result)
-        setOutput(result)
+
+        // validate the correctly named function exists
+        if(pyodide.globals[id] === undefined){
+            alert(`Missing ${id}() function.`)
+            return
+        }
+        
+        // print message
+        console.log("Code successful validated.")
+        
+        // enable test button
+        setIsCodeValid(true)
+
     }
 
-    // run tests
+    // an async version of running code
+    const runCodeAsync = () => {
+        const result = pyodide.runPythonAsync(code)
+            .then((result) => {
+                setOutput(result)
+                console.log("Your script returned (async): ", result)
+            })
+    }
+
+    // run tests: combines user's code with testing code and runs altogether
     const runTests = () => {
-        let combinedCode = code + '\n' + tests
-        pyodide.runPython(combinedCode)
-        // console.log("Output: ", output)
-        // console.log("Tests: ", tests)
-    }
+        // need to somehow clear python here.  pyodide.globals?
+        // or just grab the function of interest and run it?  test outputs?
+        // let combinedCode = code + '\n' + tests
+        // pyodide.runPython(combinedCode)
 
+        let testOutput = pyodide.globals[id](10,5)
+        if(assertEquals(testOutput, 15)){
+            console.log("Assert equals test passed")
+        }
+        else{
+            console.log("Assert equals test failed.")
+        }
+    }
 
     return (
         <Grid container spacing={1}>
-            <Grid item xs={4} lg={2}>
-                <Button 
-                    onClick={() => checkCode(false)} 
-                    disabled={!pyodideLoaded} 
+            <Grid item xs={3} lg={2}>
+                <Button
+                    onClick={runCode}
+                    disabled={!pyodideLoaded}
                     color="primary"
                     variant="contained"
                     fullWidth>
-                    Run
+                    Validate and Run
                 </Button>
             </Grid>
-            <Grid item xs={4} lg={2}>
-                <Button 
-                    onClick={() => runCode(true)} 
-                    disabled={!pyodideLoaded} 
+            <Grid item xs={3} lg={2}>
+                <Button
+                    onClick={clearConsole}
+                    disabled={!pyodideLoaded}
                     color="primary"
                     variant="contained"
                     fullWidth>
-                    Clear and Run
+                    Clear Console
                 </Button>
             </Grid>
-            <Grid item xs={4} lg={2}>
-                <Button 
-                    onClick={runTests} 
-                    disabled={!pyodideLoaded} 
+            <Grid item xs={3} lg={2}>
+                <Button
+                    onClick={resetCode}
+                    disabled={!pyodideLoaded}
+                    color="primary"
+                    variant="contained"
+                    fullWidth>
+                    Reset Code
+                </Button>
+            </Grid>
+            <Grid item xs={3} lg={2}>
+                <Button
+                    onClick={runTests}
+                    disabled={!isCodeValid}
                     color="primary"
                     variant="contained"
                     fullWidth>
                     Run Tests
                 </Button>
             </Grid>
-            <Grid item lg={6}/>
+            <Grid item lg={4} />
 
             {/* Code editor (using react-ace wrapper of Ace Editor) */}
             <Grid item xs={12} lg={6}>
@@ -144,9 +224,11 @@ function Editor({ startingCode, testsProp }) {
                         showPrintMargin: false
                     }} />
             </Grid>
+
+            {/* Console feed */}
             <Grid item xs={12} lg={6}>
                 <Box className={classes.console}>
-                    <Console logs={logs} variant="dark" filter={visibleLogTypes}/>
+                    <Console logs={logs} variant="dark" filter={visibleLogTypes} />
                 </Box>
             </Grid>
 

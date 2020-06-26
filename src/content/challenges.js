@@ -52,7 +52,8 @@ const challenges = {
 `def returnTwo():
   return 2`,
 		tests:
-`def test():
+`
+def test():
   passed_flag = True
   response_message = ''
 
@@ -80,7 +81,52 @@ const challenges = {
     return False
 test()
 `
+  },
+  addition: {
+		id: 2,
+		name: 'Addition',
+		path: '/addition',
+		description: 'A simple algorithm that uses inputs.',
+		prompt: 'Write an "addition" function that sums two numbers.',
+		startingCode:
+`def addition(a,b):
+  # your code here
+`,
+		solution:
+`def addition(a,b):
+  return a + b`,
+		tests:
+`
+def test():
+  passed_flag = True
+  response_message = ''
+
+  try: 
+    addition(1,1)
+
+    if addition(1,1) is None:
+      passed_flag = False
+      response_message += "addition(1,1) does not return a value." + "\\n"     
+
+    if addition(1,1) != 2:
+      passed_flag = False
+      response_message += "addition() does not return correct number." + "\\n"
+
+  except NameError: 
+    passed_flag = False
+    response_message += "Missing 'addition' function." + "\\n"
+
+  if passed_flag: 
+    print("All tests passed.")
+    return True
+  else:
+    print("Tests did not pass:")
+    print(response_message)
+    return False
+test()
+`,
 	}
+
 }
 
 export default challenges

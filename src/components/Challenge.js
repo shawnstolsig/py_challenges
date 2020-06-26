@@ -97,7 +97,7 @@ function Challenge({ match }) {
       {/* Seperate grid for Ace Editor and pypy.js output */}
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Editor startingCode={startingCode} testsProp={tests} />
+          <Editor startingCode={startingCode} testsProp={tests} id={match.params.id}/>
         </Grid>
       </Grid>
 
