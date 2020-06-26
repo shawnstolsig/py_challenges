@@ -7,7 +7,8 @@ import {
   Divider,
   Grid
 } from '@material-ui/core'
-import {  } from '@material-ui/icons'
+import { 
+} from '@material-ui/icons'
 
 // project imports
 import challengeData from '../content/challenges'
@@ -33,30 +34,20 @@ const useStyles = makeStyles((theme) => ({
 function Challenge({ match }) {
   // hooks and state
   const classes = useStyles()
-  // const [name, setName] = React.useState('')
-  // const [description, setDescription] = React.useState('')
-  // const [prompt, setPrompt] = React.useState('')
-  // const [startingCode, setStartingCode] = React.useState('')
-  // const [tests, setTests] = React.useState([])
 
-  // get information about the challenge
-  // React.useEffect(() => {
-  //   // get new challenge from content/
-  //   let c = challengeData[match.params.id]
-  //   setName(c.name)
-  //   setDescription(c.description)
-  //   setPrompt(c.prompt)
-  //   setStartingCode(c.startingCode)
-  //   setTests(c.tests)
-  // }, [match.params.id])
-  const {id, name, description, prompt, startingCode, tests} = challengeData[match.params.id]
-
+  // get challenge info, using url parameter for id
+  const { id, name, description, prompt, startingCode, tests } = challengeData[match.params.id]
 
   return (
     <div>
-      <Typography variant="h2">
-        {name}
-      </Typography>
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <Typography variant="h2">
+            {name}
+          </Typography>
+        </Grid>
+      </Grid>
+
       <Divider />
       {/* Main grid for all challenge content */}
       <Grid container spacing={2} className={classes.content}>
@@ -97,7 +88,7 @@ function Challenge({ match }) {
       {/* Seperate grid for Ace Editor and pypy.js output */}
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Editor startingCode={startingCode} testsProp={tests} id={id}/>
+          <Editor startingCode={startingCode} testsProp={tests} id={id} />
         </Grid>
       </Grid>
 

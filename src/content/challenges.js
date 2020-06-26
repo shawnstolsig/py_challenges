@@ -1,4 +1,8 @@
-import { assertArrayEquals, assertEquals } from '../tests'
+import { 
+  assertArrayEquals, 
+  assertEquals,
+  assertIsNotUndefined 
+} from '../tests'
 
 const challenges = {
 
@@ -16,7 +20,7 @@ const challenges = {
             retArr.push('fizz')
           } else if (i % 3 !== 0 && i % 5 === 0){
             retArr.push('buzz')
-          } else if (i % 3 == 0 && i % 5 === 0){
+          } else if (i % 3 === 0 && i % 5 === 0){
             retArr.push('fizzbuzz')
           }
           else {
@@ -38,8 +42,12 @@ for n in range(1,100):
 		,
     tests: (userFunc) => {
       return {
+        returnsValue: {
+          name: "Function returns a value? ",
+          result: () => assertIsNotUndefined(userFunc())
+        },
         assertArrayEquals: {
-          name: 'Assert Arrays Equal',
+          name: "Returned value is correct? ",
           result: () => assertArrayEquals(userFunc(), challenges.fizzbuzz.jsSolution())
         }
       }
@@ -50,7 +58,7 @@ for n in range(1,100):
 		id: 'returnTwo',
 		name: 'Return Two',
 		path: '/returnTwo',
-		description: 'Working on implementing tests for the script',
+		description: 'A very basic function for website testing.',
 		prompt: 'Write a function that returns the number 2.',
 		startingCode:
 `def returnTwo():
@@ -62,8 +70,12 @@ for n in range(1,100):
   return 2`,
     tests: (userFunc) => {
       return {
+        returnsValue: {
+          name: "Function returns a value? ",
+          result: () => assertIsNotUndefined(userFunc())
+        },
         assertEquals: {
-          name: "Assert Equals",
+          name: "Returned value is correct? ",
           result: () => assertEquals(userFunc(), 2)
         },
       }
@@ -112,7 +124,30 @@ test()
 		pySolution:
 `def addition(a,b):
   return a + b`,
-
+    tests: (userFunc) => {
+      return {
+        returnsValue: {
+          name: "Function returns a value? ",
+          result: () => assertIsNotUndefined(userFunc(1,1))
+        },
+        assertEqualsTwoPostive: {
+          name: "Returned value is correct for two positive numbers? ",
+          result: () => assertEquals(userFunc(10,5), 15)
+        },
+        assertEqualsOneZero: {
+          name: "Returned value is correct when one number is zero? ",
+          result: () => assertEquals(userFunc(99,0), 99)
+        },
+        assertEqualsOneNegative: {
+          name: "Returned value is correct when one number is negative? ",
+          result: () => assertEquals(userFunc(-8,5), -3)
+        },
+        assertEqualsTwoNegative: {
+          name: "Returned value is correct when both negative numbers? ",
+          result: () => assertEquals(userFunc(-8,-4), -12)
+        },
+      }
+    },
 		oldtests:
 `
 def test():

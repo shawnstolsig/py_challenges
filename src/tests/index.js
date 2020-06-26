@@ -1,31 +1,36 @@
-import { TrainRounded } from "@material-ui/icons"
-
-export function assertEquals(a,b){
-    return a === b
+export function assertEquals(userResult, b){
+    return userResult === b
 }
 
-export function assertArrayEquals(a,b){
-    if(a.length !== b.length){
+export function assertArrayEquals(userResult,b){
+    if(userResult.length !== b.length){
         return false
     }
-    for(let i = 0; i < a.length; i++){
-        if(a[i] !== b[i]){
+    for(let i = 0; i < userResult.length; i++){
+        if(userResult[i] !== b[i]){
             return false
         }
     }
     return true
 }
 
-export function assertFalse(a){
-    if(a){
+export function assertFalse(userResult){
+    if(userResult){
         return false
     }
     return true
 }
 
-export function assertTrue(a){
-    if(a){
+export function assertTrue(userResult){
+    if(userResult){
         return true
     }
     return false
+}
+
+export function assertIsNotUndefined(userResult){
+    if(userResult === undefined){
+        return false
+    }
+    return true
 }
