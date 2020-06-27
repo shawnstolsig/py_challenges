@@ -35,8 +35,8 @@ const useStyles = makeStyles((theme) => ({
 
 function Editor({ startingCode, testsProp, id }) {
     const classes = useStyles()
-    const theme = useTheme();
-    const lgScreen = useMediaQuery(theme.breakpoints.up('lg'));
+    const theme = useTheme();                                       // access to material ui's theme object
+    const lgScreen = useMediaQuery(theme.breakpoints.up('lg'));     // true whenever screen is lg and up
 
     // state 
     const [code, setCode] = React.useState(startingCode)            // user's code
@@ -45,13 +45,9 @@ function Editor({ startingCode, testsProp, id }) {
     const [isCodeValid, setIsCodeValid] = React.useState(false)     // check user's code for before allowing tests
     const [testsPassed, setTestsPassed] = React.useState(false)     // tests pass
 
-    // load piodide on initial render
+    // load piodide and hook into browser console on initial render
     React.useEffect(() => {
         loadPython()
-    }, [])
-
-    // hook into browser console on initial render
-    React.useEffect(() => {
         Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
     }, [])
 
@@ -70,16 +66,18 @@ function Editor({ startingCode, testsProp, id }) {
     }, [startingCode])
 
     // editor load function (maybe do something else here with the UI?)
-    const onEditorLoad = () => console.log("Editor has loaded.")
+    const onEditorLoad = () => console.log("Text editor has loaded.")
 
     // filter console logs.  ommited: 'warn'
     const visibleLogTypes = ['log', 'error', 'info', 'debug', 'command', 'result']
 
     // load python interpreter. re-loaded after each code execution to clear history
     const loadPython = () => {
+
         // load new python instance
         languagePluginLoader.then(() => {
-            // enable the button for running code
+
+            // enable the Run Code
             setPyodideLoaded(true)
 
             // print out the current version
@@ -92,7 +90,7 @@ function Editor({ startingCode, testsProp, id }) {
 
     // clears all previously created python variables/functions
     const clearPythonHistory = () => {
-        // clear non-stock pyodide objects (except for the starting/default pyodide_dir)
+        // clear user-created pyodide objects (every except for the starting/default pyodide_dir)
         pyodide.runPython(`
                         for key in dir():
                             if key not in pyodide_dir and key != 'pyodide_dir':
@@ -101,12 +99,11 @@ function Editor({ startingCode, testsProp, id }) {
 
     // command for clearing console
     const clearConsole = () => {
-        // clear console
         setLogs([])
         console.log("Console cleared.")
     }
 
-    // resets code to starting code
+    // resets python variables and user's code
     const resetCode = () => {
         setCode(startingCode)       // re-insert staring code
         setIsCodeValid(false)       // reset code validation
@@ -118,17 +115,17 @@ function Editor({ startingCode, testsProp, id }) {
     // run python code
     const runCode = () => {
 
-        // verify eval() is not used
+        // check that eval() is not used (required?)
         if (code.includes('eval')) {
             alert("Use of eval() is not allowed.")
             return
         }
-        // run code to make sure it builds
+        // run code to make sure it builds (any error messages will print to console)
         pyodide.runPython(code)
 
-        // validate the correctly named function exists
+        // validate the correctly named function exists for the challenge
         if (pyodide.globals[id] === undefined) {
-            alert(`Missing ${id}() function.`)
+            console.log(`Missing ${id}() function.`)
             return
         }
 
@@ -140,7 +137,7 @@ function Editor({ startingCode, testsProp, id }) {
 
     }
 
-    // run tests: combines user's code with testing code and runs altogether
+    // run tests (which are contained in the challenge's js object)
     const runTests = () => {
 
         // flag for checking test results
@@ -151,14 +148,20 @@ function Editor({ startingCode, testsProp, id }) {
 
         // iterate through all tests and print passed/failed message
         Object.keys(tests).forEach((x) => {
+
+            // get result of running test (true/false)
             let result = tests[x].result()
+
+            // if a test fails, set flag to false
             if (!result) {
                 combinedTestsPassed = false
             }
+            
+            // print result of test to console
             console.log(`Test: ${tests[x].name} - ${result ? "Passed" : "Failed"}`)
         })
 
-        // print message if challenge completed
+        // print message regarding completion/failure of challenge
         if (combinedTestsPassed) {
             console.log("~~~~~   Challenge completed!  ~~~~~")
         } else {
