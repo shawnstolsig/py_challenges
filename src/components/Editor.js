@@ -10,10 +10,8 @@ import React from 'react'
 import AceEditor from 'react-ace'
 import "ace-builds/src-noconflict/mode-python"
 import "ace-builds/src-noconflict/theme-github"
-import { makeStyles, useTheme } from '@material-ui/core/styles'
-import useMediaQuery from '@material-ui/core/useMediaQuery'
+import { makeStyles } from '@material-ui/core/styles'
 import {
-    Button,
     Box,
     Grid
 } from '@material-ui/core'
@@ -43,8 +41,6 @@ const useStyles = makeStyles((theme) => ({
 
 function Editor({ startingCode, testsProp, id }) {
     const classes = useStyles()
-    const theme = useTheme();                                       // access to material ui's theme object
-    const lgScreen = useMediaQuery(theme.breakpoints.up('lg'));     // true whenever screen is lg and up
 
     // state 
     const [code, setCode] = React.useState(startingCode)            // user's code
@@ -59,14 +55,35 @@ function Editor({ startingCode, testsProp, id }) {
         Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
     }, [])
 
+    // create a memoized version of clearPythonHistory so that it persists across renders 
+    // this will prevent any re-renders, as it is a dependency of the useEffect below
+    const clearPythonHistory = React.useCallback(() => {
+        console.log("trying to clear python history")
+        console.log("pyodideLoaded", pyodideLoaded)
+
+        // only clear python history if it's already been loaded
+        if (pyodideLoaded) {
+            console.log("pyodide is loaded, clearing history")
+            // clear user-created pyodide objects (every except for the starting/default pyodide_dir)
+            pyodide.runPython(`
+                            for key in dir():
+                                if key not in pyodide_dir and key != 'pyodide_dir':
+                                    del globals()[key]`)
+            
+            // print message
+            console.log("Python history cleared.")
+        }
+    },[])
+
     // update state whenever challenge changes
     React.useEffect(() => {
+        console.log("in useEffect, going to clear python history")
         setCode(startingCode)
         setIsCodeValid(false)
         setTestsPassed(false)
         clearPythonHistory()
 
-    }, [startingCode])
+    }, [startingCode, clearPythonHistory])
 
     // editor load function (maybe do something else here with the UI?)
     const onEditorLoad = () => console.log("Text editor has loaded.")
@@ -89,25 +106,6 @@ function Editor({ startingCode, testsProp, id }) {
             // store the default objects for later use
             pyodide.runPython('pyodide_dir = dir()')
         });
-    }
-
-    // clears all previously created python variables/functions
-    const clearPythonHistory = () => {
-
-        // only clear python history if it's already been loaded
-        if (pyodideLoaded) {
-
-            // clear user-created pyodide objects (every except for the starting/default pyodide_dir)
-            pyodide.runPython(`
-                            for key in dir():
-                                if key not in pyodide_dir and key != 'pyodide_dir':
-                                    del globals()[key]`)
-            
-            // print message
-            console.log("Python history cleared.")
-        }
-
-
     }
 
     // command for clearing console
