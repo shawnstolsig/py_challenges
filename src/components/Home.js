@@ -1,3 +1,7 @@
+// A landing page for the user.  Shows a list of the available coding challenges, 
+// which is updated with an authedUser's actual progress as retrieved from the 
+// backend.
+
 // package imports
 import React from 'react'
 import { connect } from 'react-redux'

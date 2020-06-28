@@ -1,3 +1,7 @@
+// A component that houses the navigation duties. Renders a permanent nav drawer at >=md screen sizes,
+// and a toggle-able nav drawer at <md screen sizes.  Also renders a top app bar for the site's name/logo, 
+// a nav drawer button (at applicable screen sizes), a login/logout button.
+
 // package imports 
 import React from 'react'
 import { connect } from 'react-redux'
@@ -71,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
 
 // a ListItemLink implementation for using ListItem and react-router-dom
 function ListItemLink(props) {
-  const { icon, primary, to } = props;
+  const { icon, primary, to, closeDrawerFunc } = props;
 
   const renderLink = React.useMemo(
     () => React.forwardRef((itemProps, ref) => <RouterLink to={to} ref={ref} {...itemProps} />),
@@ -80,7 +84,7 @@ function ListItemLink(props) {
 
   return (
     <li>
-      <ListItem button component={renderLink}>
+      <ListItem button component={renderLink} onClick={() => closeDrawerFunc()}>
         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
         <ListItemText primary={primary} />
       </ListItem>
@@ -94,6 +98,11 @@ function Nav({ authedUser, dispatch }) {
   // state for controlling wether drawer is open or not (applicable to xs screen size only)
   const [mobileOpen, setMobileOpen] = React.useState(false)
 
+  // a function to pass down to ListItemLink for closing the drawer when a link is clicked
+  const closeDrawer = () => {
+    setMobileOpen(false)
+  }
+
   // the contents of the nav drawer.  update labels/links/icons
   const drawerContents = <List>
                           {Object.keys(challengesData).map((key) => 
@@ -102,6 +111,7 @@ function Nav({ authedUser, dispatch }) {
                               to={challengesData[key].path} 
                               primary={challengesData[key].name} 
                               icon={<KeyboardArrowRightIcon />}
+                              closeDrawerFunc={closeDrawer}
                             />
                             )}
                         </List>
@@ -115,7 +125,7 @@ function Nav({ authedUser, dispatch }) {
             className={classes.menuButton}
             color="inherit"
             aria-label="menu"
-            onClick={() => setMobileOpen(!mobileOpen)}>
+            onClick={() => setMobileOpen(true)}>
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>

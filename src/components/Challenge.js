@@ -1,3 +1,8 @@
+// This component displays a given coding challenge.  It gets the id of the   
+// coding challenge via URL paramater, and then retrieves the challenge data
+// from content/challenges.js.  It renders the Editor component that the 
+// user will interact with.
+
 // package imports
 import React from 'react'
 import { connect } from 'react-redux'

@@ -1,3 +1,6 @@
+// This file holds different types of testing functions that are called from the 
+// challenge .js files.
+
 export function assertEquals(userResult, b){
     return userResult === b
 }

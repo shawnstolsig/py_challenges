@@ -1,3 +1,6 @@
+// The base App component.  Mainly responsible for housing the router/routes.
+// Code is dynamically loaded by component to improve performance.
+
 // package imports
 import React from 'react'
 import { connect } from 'react-redux'

@@ -1,3 +1,5 @@
+// This file currently holds basic challenges for development purposes.
+
 import { 
   assertArrayEquals, 
   assertEquals,
@@ -62,7 +64,7 @@ for n in range(1,100):
 		prompt: 'Write a function that returns the number 2.',
 		startingCode:
 `def returnTwo():
-  # your code here
+  return 2  
 `,
     jsSolution: () => { return 2 },
 		pySolution:

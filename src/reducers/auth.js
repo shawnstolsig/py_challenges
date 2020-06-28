@@ -1,3 +1,5 @@
+// Reducer function related to user authentication actions.
+
 import { LOGIN_USER, LOGOUT_USER } from '../actions/auth'
 
 export default function authReducer(state = null, action) {

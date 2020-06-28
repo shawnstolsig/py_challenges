@@ -1,3 +1,10 @@
+// This component is the workhorse of this app.  
+// It houses the code editor (using react-ace) and a copy of the console
+// (using console-feed).  It also render all of the control button that are 
+// used by the editor and the console.  Last but not least, it sets up pyodide
+// for running Python code.  
+
+
 // package imports
 import React from 'react'
 import AceEditor from 'react-ace'
@@ -23,6 +30,7 @@ import { Hook, Console, Decode } from 'console-feed'
 
 // project imports
 import { languagePluginLoader } from '../pyodide/pyodide'
+import EditorControlButton from './EditorControlButton'
 
 // material UI classes for style
 const useStyles = makeStyles((theme) => ({
@@ -56,12 +64,7 @@ function Editor({ startingCode, testsProp, id }) {
         setCode(startingCode)
         setIsCodeValid(false)
         setTestsPassed(false)
-
-        // clear python history, only if pyodide has already been loaded
-        if (pyodideLoaded) {
-            clearPythonHistory()
-            console.log("Python history cleared.")
-        }
+        clearPythonHistory()
 
     }, [startingCode])
 
@@ -90,11 +93,21 @@ function Editor({ startingCode, testsProp, id }) {
 
     // clears all previously created python variables/functions
     const clearPythonHistory = () => {
-        // clear user-created pyodide objects (every except for the starting/default pyodide_dir)
-        pyodide.runPython(`
-                        for key in dir():
-                            if key not in pyodide_dir and key != 'pyodide_dir':
-                                del globals()[key]`)
+
+        // only clear python history if it's already been loaded
+        if (pyodideLoaded) {
+
+            // clear user-created pyodide objects (every except for the starting/default pyodide_dir)
+            pyodide.runPython(`
+                            for key in dir():
+                                if key not in pyodide_dir and key != 'pyodide_dir':
+                                    del globals()[key]`)
+            
+            // print message
+            console.log("Python history cleared.")
+        }
+
+
     }
 
     // command for clearing console
@@ -183,46 +196,37 @@ function Editor({ startingCode, testsProp, id }) {
             <Grid item xs={6}>
                 <Grid container justify="flex-start" spacing={1}>
                     <Grid item>
-                        <Button
+                        <EditorControlButton 
                             onClick={runCode}
                             disabled={!pyodideLoaded}
-                            color="primary"
-                            variant="contained"
-                            startIcon={<PlayArrowIcon />}
-                        >
-                            {lgScreen && 'Check and Run Code'}
-                </Button>
+                            icon={<PlayArrowIcon />}
+                            text="Run Code"
+                        />
                     </Grid>
                     <Grid item>
-                        <Button
+                        <EditorControlButton 
                             onClick={runTests}
                             disabled={!isCodeValid}
-                            color="primary"
-                            variant="contained"
-                            startIcon={<AssignmentTurnedInIcon />}
-                        >
-                            {lgScreen && 'Run Tests'}
-                </Button>
+                            icon={<AssignmentTurnedInIcon />}
+                            text="Run Tests"
+                        />
                     </Grid>
                     <Grid item>
                         {testsPassed 
-                            ? <Button
-                                onClick={() => alert('implement save function')}
-                                style={{ background: green[500]}}
-                                color="primary"
-                                variant="contained"
-                                startIcon={<CheckBoxIcon />}
-                                >
-                                {lgScreen && 'Completed!  Save?'}
-                            </Button>
-                            : <Button
-                                disabled
-                                onClick={() => alert('implement save function')}
-                                variant="contained"
-                                startIcon={<CheckBoxOutlineBlankIcon />}
-                                >
-                                {lgScreen && 'Incomplete'}
-                            </Button>
+                            ?   <EditorControlButton 
+                                    onClick={() => alert('implement save function')}
+                                    disabled={false}
+                                    color={'inherit'}
+                                    icon={<CheckBoxIcon />}
+                                    style={{ color: 'white', background: green[500]}}
+                                    text="Completed!  Save?"
+                                />
+                            :   <EditorControlButton 
+                                    onClick={() => alert('implement save function')}
+                                    disabled={true}
+                                    icon={<CheckBoxOutlineBlankIcon />}
+                                    text="Incomplete"
+                                /> 
                         }
                     </Grid>
                 </Grid>
@@ -232,26 +236,20 @@ function Editor({ startingCode, testsProp, id }) {
             <Grid item xs={6}>
                 <Grid container justify="flex-end" spacing={1}>
                     <Grid item>
-                        <Button
+                        <EditorControlButton 
                             onClick={clearConsole}
                             disabled={!pyodideLoaded}
-                            color="primary"
-                            variant="contained"
-                            startIcon={<ClearAllIcon />}
-                        >
-                            {lgScreen && 'Clear Console'}
-                        </Button>
+                            icon={<ClearAllIcon />}
+                            text="Clear Console"
+                        />
                     </Grid>
                     <Grid item>
-                        <Button
+                        <EditorControlButton 
                             onClick={resetCode}
                             disabled={!pyodideLoaded}
-                            color="primary"
-                            variant="contained"
-                            startIcon={<RotateLeftIcon />}
-                        >
-                            {lgScreen && 'Reset Code'}
-                        </Button>
+                            icon={<RotateLeftIcon />}
+                            text="Reset Code"
+                        />
                     </Grid>
                 </Grid>
             </Grid>

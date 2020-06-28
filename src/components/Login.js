@@ -1,3 +1,6 @@
+// A simple login component.  The form is a dual-puropse login and register form, which
+// will transform when the user clicks the register button.
+
 // package imports
 import React from 'react'
 import { connect } from 'react-redux'

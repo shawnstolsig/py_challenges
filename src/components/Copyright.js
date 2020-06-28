@@ -1,3 +1,5 @@
+// A basic component for showing copyright info.
+
 // package imports 
 import React from 'react'
 import { Typography, Link } from '@material-ui/core'

@@ -1,3 +1,5 @@
+// This file houses asynchornus axios calls the Django backend.
+
 // package imports
 import axios from 'axios'
 
