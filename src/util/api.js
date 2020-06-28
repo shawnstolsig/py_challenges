@@ -53,3 +53,34 @@ export function refreshToken(refresh){
     },
   })
 }
+
+// function for saving new user code to db
+export function saveNewCode({code, title, user, challenge}, access){
+  return axios({
+    method: 'post',
+    url: `${baseApiUrl}/api/v1/code/`,
+    headers: {
+      authorization: `Bearer ${access}`
+    },
+    data: {
+      code, 
+      title,
+      user,
+      challenge
+    }
+  })
+}
+
+// function for saving/over-writing existing code attempt
+export function saveCode({id, code}, access){
+  return axios({
+    method: 'patch',
+    url: `${baseApiUrl}/api/v1/code/${id}/`,
+    headers: {
+      authorization: `Bearer ${access}`
+    },
+    data: {
+      code, 
+    }
+  })
+}

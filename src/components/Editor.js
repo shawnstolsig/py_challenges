@@ -23,12 +23,14 @@ import {
     AssignmentTurnedIn as AssignmentTurnedInIcon,
     PlayArrow as PlayArrowIcon,
 } from '@material-ui/icons'
-import { green } from '@material-ui/core/colors'
+import { red, green } from '@material-ui/core/colors'
 import { Hook, Console, Decode } from 'console-feed'
+import { connect } from 'react-redux'
 
 // project imports
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
+import { saveNewCode, saveCode } from '../util/api'
 
 // material UI classes for style
 const useStyles = makeStyles((theme) => ({
@@ -39,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }))
 
-function Editor({ startingCode, testsProp, id }) {
+function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) {
     const classes = useStyles()
 
     // state 
@@ -48,6 +50,7 @@ function Editor({ startingCode, testsProp, id }) {
     const [pyodideLoaded, setPyodideLoaded] = React.useState(false) // indicates when pyodide is ready
     const [isCodeValid, setIsCodeValid] = React.useState(false)     // check user's code for before allowing tests
     const [testsPassed, setTestsPassed] = React.useState(false)     // tests pass
+    const [loadedSolution, setLoadedSolution] = React.useState({})  // state for loaded solution
 
     // load piodide and hook into browser console on initial render
     React.useEffect(() => {
@@ -82,7 +85,14 @@ function Editor({ startingCode, testsProp, id }) {
     const onEditorLoad = () => console.log("Text editor has loaded.")
 
     // filter console logs.  ommited: 'warn'
-    const visibleLogTypes = ['log', 'error', 'info', 'debug', 'command', 'result']
+    const visibleLogTypes = [
+        'log', 
+        'error', 
+        'info', 
+        'debug', 
+        'command', 
+        'result'
+    ]
 
     // load python interpreter. re-loaded after each code execution to clear history
     const loadPython = () => {
@@ -128,8 +138,8 @@ function Editor({ startingCode, testsProp, id }) {
         pyodide.runPython(code)
 
         // validate the correctly named function exists for the challenge
-        if (pyodide.globals[id] === undefined) {
-            console.log(`Missing ${id}() function.`)
+        if (pyodide.globals[challengeId] === undefined) {
+            console.log(`Missing ${challengeId}() function.`)
             return
         }
 
@@ -148,7 +158,7 @@ function Editor({ startingCode, testsProp, id }) {
         let combinedTestsPassed = true
 
         // get tests object.  this will have each test as a separate key
-        let tests = testsProp(pyodide.globals[id])
+        let tests = testsProp(pyodide.globals[challengeId])
 
         // iterate through all tests and print passed/failed message
         Object.keys(tests).forEach((x) => {
@@ -180,6 +190,35 @@ function Editor({ startingCode, testsProp, id }) {
 
     }
 
+    // save new code
+    const saveAs = () => {
+        // post to backend
+        saveNewCode({
+            code,
+            title: 'hardcoded title',
+            user: authedUserId,
+            challenge: challengeId
+        }, access)
+        // update state with response (this allows saving again, once we have code's id)
+        .then((res) => {
+            console.log('new code saved to db')
+            console.log(`id is: ${res.data.id}`)
+            setLoadedSolution({
+                id: res.data.id,
+                code,
+                title: 'hardcoded title',
+            })
+        })
+        .catch((error) => {
+            console.log('unable to saveNew, error: ')
+            console.log(error)
+            setLoadedSolution({})
+        })
+    }
+
+    // save existing code
+    const save = () => {}
+
     return (
         <Grid container spacing={1}>
 
@@ -203,20 +242,23 @@ function Editor({ startingCode, testsProp, id }) {
                         />
                     </Grid>
                     <Grid item>
+                        <EditorControlButton 
+
+                        />
+                    </Grid>
+                    <Grid item>
                         {testsPassed 
                             ?   <EditorControlButton 
                                     onClick={() => alert('implement save function')}
-                                    disabled={false}
-                                    color={'inherit'}
                                     icon={<CheckBoxIcon />}
                                     style={{ color: 'white', background: green[500]}}
-                                    text="Completed!  Save?"
+                                    text="Save"
                                 />
                             :   <EditorControlButton 
                                     onClick={() => alert('implement save function')}
-                                    disabled={true}
+                                    style={{ color: 'white', background: red[500]}}
                                     icon={<CheckBoxOutlineBlankIcon />}
-                                    text="Incomplete"
+                                    text="Save"
                                 /> 
                         }
                     </Grid>
@@ -277,9 +319,15 @@ function Editor({ startingCode, testsProp, id }) {
                 </Box>
             </Grid>
 
-
         </Grid>
     )
 }
 
-export default Editor
+function mapStateToProps(state){
+    return {
+        authedUserId: state.authedUser.id,
+        access: state.authedUser.access
+    }
+}
+
+export default connect(mapStateToProps)(Editor)
