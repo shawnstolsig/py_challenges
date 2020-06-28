@@ -58,31 +58,24 @@ function Editor({ startingCode, testsProp, id }) {
     // create a memoized version of clearPythonHistory so that it persists across renders 
     // this will prevent any re-renders, as it is a dependency of the useEffect below
     const clearPythonHistory = React.useCallback(() => {
-        console.log("trying to clear python history")
-        console.log("pyodideLoaded", pyodideLoaded)
 
-        // only clear python history if it's already been loaded
+        // only clear python history if pyodide is already loaded 
+        // (this does trigger an extra clear on initial loading or pyodide)
         if (pyodideLoaded) {
-            console.log("pyodide is loaded, clearing history")
             // clear user-created pyodide objects (every except for the starting/default pyodide_dir)
             pyodide.runPython(`
                             for key in dir():
                                 if key not in pyodide_dir and key != 'pyodide_dir':
                                     del globals()[key]`)
-            
-            // print message
-            console.log("Python history cleared.")
         }
-    },[])
+    },[pyodideLoaded])
 
     // update state whenever challenge changes
     React.useEffect(() => {
-        console.log("in useEffect, going to clear python history")
         setCode(startingCode)
         setIsCodeValid(false)
         setTestsPassed(false)
         clearPythonHistory()
-
     }, [startingCode, clearPythonHistory])
 
     // editor load function (maybe do something else here with the UI?)
@@ -97,14 +90,14 @@ function Editor({ startingCode, testsProp, id }) {
         // load new python instance
         languagePluginLoader.then(() => {
 
-            // enable the Run Code
-            setPyodideLoaded(true)
-
             // print out the current version
             console.log(pyodide.runPython('import sys\nsys.version'));
 
             // store the default objects for later use
             pyodide.runPython('pyodide_dir = dir()')
+
+            // enable the Run Code
+            setPyodideLoaded(true)
         });
     }
 
