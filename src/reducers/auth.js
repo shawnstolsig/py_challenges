@@ -6,11 +6,19 @@ export default function authReducer(state = null, action) {
   switch (action.type) {
     case LOGIN_USER:
       return { 
-        id: action.id,
+        id: action.userId,
         username: action.username,
+        firstName: action.firstName,
+        lastName: action.lastName,
+        email: action.email,
+        editorTheme: action.editorTheme,
+        tabSize: action.tabSize,
+        darkModeEnabled: action.darkModeEnabled,
         expiresAt: action.expiresAt,
         access: action.access,
-        refresh: action.refresh
+        refresh: action.refresh,
+        completedChallenges: action.completedChallenges,
+        snippets: action.snippets
       }
     case LOGOUT_USER:
       return null

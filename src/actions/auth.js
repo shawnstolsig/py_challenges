@@ -1,5 +1,5 @@
 // project imports
-import { login, register, getUserFromToken } from '../util/api'
+import { login, register, getUserFromToken, getUserInfo } from '../util/api'
 import jwt_decode from 'jwt-decode'
 
 // action types
@@ -7,14 +7,10 @@ export const LOGIN_USER = 'LOGIN_USER'
 export const LOGOUT_USER = 'LOGOUT_USER'
 
 // action creator: login user
-function loginUser(id, username, expiresAt, access, refresh) {
+function loginUser(payload) {
   return {
     type: LOGIN_USER,
-    id,
-    username,
-    expiresAt,
-    access,
-    refresh,
+    ...payload
   }
 }
 
@@ -48,15 +44,41 @@ export function handleLoginUser({ username, password }, history) {
         // decode access token to get username, expiration, id
         const { userId, expiresAt } = helperJWT(access, refresh)
 
-        // dispatch action to store values in state, indicating user is logged in successfully
-        dispatch(loginUser(userId, username, expiresAt, access, refresh))
+        getUserInfo(userId, access)
+        .then((res)=> {         
+
+          // login payload
+          const payload = {
+            userId, 
+            username,
+            firstName: res.data.first_name,
+            lastName: res.data.last_name,
+            email: res.data.email,
+            editorTheme: res.data.profile.editor_theme,
+            tabSize: res.data.profile.tab_size,
+            darkModeEnabled: res.data.profile.dark_mode_enabled,
+            expiresAt,
+            access,
+            refresh,
+            completedChallenges: res.data.completed_challenges,
+            snippets: res.data.snippets,
+          }
+
+          // dispatch action to store values in state, indicating user is logged in successfully
+          dispatch(loginUser(payload))
+
+        })
+        .catch((error) => {
+          console.log("Error retrieving user info: ")
+          console.log(error.response)
+        })
 
         // store tokens in localStorage for autologin
         localStorage.setItem('access', access)
         localStorage.setItem('refresh', refresh)
 
         // redirect to home
-        history.push('/')
+        // history.push('/')
       })
       .catch((error) => {
         console.log("Error logging in: ")
@@ -102,8 +124,36 @@ export function handleAutoLogin() {
             // extract username from API response
             const { username } = data
 
-            // login user
-            dispatch(loginUser(userId, username, expiresAt, access, refresh))
+            // get user info
+            getUserInfo(userId, access)
+            .then((res)=> {         
+   
+              // login payload
+              const payload = {
+                userId, 
+                username,
+                firstName: res.data.first_name,
+                lastName: res.data.last_name,
+                email: res.data.email,
+                editorTheme: res.data.profile.editor_theme,
+                tabSize: res.data.profile.tab_size,
+                darkModeEnabled: res.data.profile.dark_mode_enabled,
+                expiresAt,
+                access,
+                refresh,
+                completedChallenges: res.data.completed_challenges,
+                snippets: res.data.snippets,
+              }
+    
+              // dispatch action to store values in state, indicating user is logged in successfully
+              dispatch(loginUser(payload))
+    
+            })
+            .catch((error) => {
+              console.log("Error retrieving user info: ")
+              console.log(error.response)
+            })
+
 
           })
           .catch(() => {

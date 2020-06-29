@@ -31,3 +31,10 @@ class Code(models.Model):
 
     def __str__(self):
         return f'{self.title} ({self.date_updated})'
+
+class Completion(models.Model):
+    '''
+    '   Inidicates when a user marks a challenge complete.  
+    '''
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="completed_challenges")
+    challenge = models.CharField(max_length=50)

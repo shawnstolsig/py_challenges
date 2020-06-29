@@ -22,6 +22,7 @@ import {
     RotateLeft as RotateLeftIcon,
     AssignmentTurnedIn as AssignmentTurnedInIcon,
     PlayArrow as PlayArrowIcon,
+    Save as SaveIcon,
 } from '@material-ui/icons'
 import { red, green } from '@material-ui/core/colors'
 import { Hook, Console, Decode } from 'console-feed'
@@ -30,7 +31,7 @@ import { connect } from 'react-redux'
 // project imports
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
-import { saveNewCode, saveCode } from '../util/api'
+import { saveNewCode, saveCode, toggleCompleted } from '../util/api'
 
 // material UI classes for style
 const useStyles = makeStyles((theme) => ({
@@ -41,16 +42,27 @@ const useStyles = makeStyles((theme) => ({
     }
 }))
 
-function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) {
+function Editor(props) {
     const classes = useStyles()
+    const { 
+        startingCode, 
+        testsProp, 
+        challengeId, 
+        authedUserId, 
+        access, 
+        userCompletedChallenge,
+        completionId,
+        dispatch
+    } = props
 
     // state 
-    const [code, setCode] = React.useState(startingCode)            // user's code
-    const [logs, setLogs] = React.useState([])                      // console for print statements
-    const [pyodideLoaded, setPyodideLoaded] = React.useState(false) // indicates when pyodide is ready
-    const [isCodeValid, setIsCodeValid] = React.useState(false)     // check user's code for before allowing tests
-    const [testsPassed, setTestsPassed] = React.useState(false)     // tests pass
-    const [loadedSolution, setLoadedSolution] = React.useState({})  // state for loaded solution
+    const [code, setCode] = React.useState(startingCode)                    // user's code
+    const [logs, setLogs] = React.useState([])                              // console for print statements
+    const [pyodideLoaded, setPyodideLoaded] = React.useState(false)         // indicates when pyodide is ready
+    const [isCodeValid, setIsCodeValid] = React.useState(false)             // check user's code for before allowing tests
+    const [testsPassed, setTestsPassed] = React.useState(false)             // tests pass
+    const [loadedSolution, setLoadedSolution] = React.useState(null)        // state for loaded solution
+    const [challengeCompleted, setChallengeCompleted] = React.useState(false)
 
     // load piodide and hook into browser console on initial render
     React.useEffect(() => {
@@ -71,7 +83,7 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
                                 if key not in pyodide_dir and key != 'pyodide_dir':
                                     del globals()[key]`)
         }
-    },[pyodideLoaded])
+    }, [pyodideLoaded])
 
     // update state whenever challenge changes
     React.useEffect(() => {
@@ -81,16 +93,22 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
         clearPythonHistory()
     }, [startingCode, clearPythonHistory])
 
+    // set flag if user has completed this challenge or not
+    React.useEffect(() => {
+        console.log("in useEffect, setting completedChallenge to ", userCompletedChallenge)
+        setChallengeCompleted(userCompletedChallenge)
+    }, [challengeId, userCompletedChallenge])
+
     // editor load function (maybe do something else here with the UI?)
     const onEditorLoad = () => console.log("Text editor has loaded.")
 
     // filter console logs.  ommited: 'warn'
     const visibleLogTypes = [
-        'log', 
-        'error', 
-        'info', 
-        'debug', 
-        'command', 
+        'log',
+        'error',
+        'info',
+        'debug',
+        'command',
         'result'
     ]
 
@@ -170,7 +188,7 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
             if (!result) {
                 combinedTestsPassed = false
             }
-            
+
             // print result of test to console
             console.log(`Test: ${tests[x].name} - ${result ? "Passed" : "Failed"}`)
         })
@@ -199,25 +217,72 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
             user: authedUserId,
             challenge: challengeId
         }, access)
-        // update state with response (this allows saving again, once we have code's id)
-        .then((res) => {
-            console.log('new code saved to db')
-            console.log(`id is: ${res.data.id}`)
-            setLoadedSolution({
-                id: res.data.id,
-                code,
-                title: 'hardcoded title',
+            // update state with response (this allows saving again, once we have code's id)
+            .then((res) => {
+                setLoadedSolution({
+                    id: res.data.id,
+                    code,
+                    title: 'hardcoded title',
+                })
             })
-        })
-        .catch((error) => {
-            console.log('unable to saveNew, error: ')
-            console.log(error)
-            setLoadedSolution({})
-        })
+            .catch((error) => {
+                console.log('unable to saveNew, error: ')
+                console.log(error)
+            })
     }
 
     // save existing code
-    const save = () => {}
+    const save = () => {
+        // post to backend
+        saveCode({
+            id: loadedSolution.id,
+            code,
+        }, access)
+            .then(() => {
+                console.log(`"${loadedSolution.title}" code saved.`)
+                setLoadedSolution({
+                    ...loadedSolution,
+                    code,
+                })
+            })
+            .catch((error) => {
+                console.log('unable to save, error: ')
+                console.log(error)
+            })
+    }
+
+    // mark challenge as complete
+    const toggleCompletion = () => {
+        console.log("toggling")
+
+        // if challenge is completed, then delete completion entry
+        if(challengeCompleted){
+            toggleCompleted({
+                completedId: completionId,
+                markComplete: false
+            }, access)
+            .then(()=>{
+                setChallengeCompleted(false)
+                // also post to store?
+            })
+            .catch(()=>alert("error toggling"))
+        } 
+        // if challenge is not completed, then post completion
+        else {
+            toggleCompleted({
+                challengeId,
+                user: authedUserId,
+                markComplete: true
+            }, access)
+            .then((res)=>{
+                setChallengeCompleted(true)
+                // also post to store?  with res.data.id    
+                // the current issue is that even that the backend has the new completion, the store does not
+                // so when a completion is created, must also add to store.  do this optimistically? 
+            })
+            .catch(()=>alert("error toggling"))
+        }
+    }
 
     return (
         <Grid container spacing={1}>
@@ -226,7 +291,7 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
             <Grid item xs={6}>
                 <Grid container justify="flex-start" spacing={1}>
                     <Grid item>
-                        <EditorControlButton 
+                        <EditorControlButton
                             onClick={runCode}
                             disabled={!pyodideLoaded}
                             icon={<PlayArrowIcon />}
@@ -234,42 +299,58 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
                         />
                     </Grid>
                     <Grid item>
-                        <EditorControlButton 
+                        <EditorControlButton
                             onClick={runTests}
                             disabled={!isCodeValid}
                             icon={<AssignmentTurnedInIcon />}
                             text="Run Tests"
                         />
                     </Grid>
-                    <Grid item>
-                        <EditorControlButton 
-
-                        />
-                    </Grid>
-                    <Grid item>
-                        {testsPassed 
-                            ?   <EditorControlButton 
-                                    onClick={() => alert('implement save function')}
-                                    icon={<CheckBoxIcon />}
-                                    style={{ color: 'white', background: green[500]}}
+                    {/* Only show save and "mark completed" buttons if logged in */}
+                    {authedUserId &&
+                        <React.Fragment>
+                            <Grid item>
+                                <EditorControlButton
+                                    onClick={saveAs}
+                                    icon={<SaveIcon />}
+                                    text="Save As..."
+                                />
+                            </Grid>
+                            <Grid item>
+                                <EditorControlButton
+                                    onClick={save}
+                                    icon={<SaveIcon />}
+                                    disabled={!loadedSolution}
                                     text="Save"
                                 />
-                            :   <EditorControlButton 
-                                    onClick={() => alert('implement save function')}
-                                    style={{ color: 'white', background: red[500]}}
-                                    icon={<CheckBoxOutlineBlankIcon />}
-                                    text="Save"
-                                /> 
-                        }
-                    </Grid>
+                            </Grid>
+                            <Grid item>
+                                {challengeCompleted
+                                    ? <EditorControlButton
+                                        onClick={toggleCompletion}
+                                        icon={<CheckBoxIcon />}
+                                        style={{ color: 'white', background: green[500] }}
+                                        text="Completed"
+                                    />
+                                    : <EditorControlButton
+                                        onClick={toggleCompletion}
+                                        style={{ color: 'white', background: red[500] }}
+                                        icon={<CheckBoxOutlineBlankIcon />}
+                                        text="Not completed"
+                                    />
+                                }
+                            </Grid>
+                        </React.Fragment>
+                    }
+
                 </Grid>
             </Grid>
 
-             {/* Ride side controls: editor/console settings */}
+            {/* Ride side controls: editor/console settings */}
             <Grid item xs={6}>
                 <Grid container justify="flex-end" spacing={1}>
                     <Grid item>
-                        <EditorControlButton 
+                        <EditorControlButton
                             onClick={clearConsole}
                             disabled={!pyodideLoaded}
                             icon={<ClearAllIcon />}
@@ -277,7 +358,7 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
                         />
                     </Grid>
                     <Grid item>
-                        <EditorControlButton 
+                        <EditorControlButton
                             onClick={resetCode}
                             disabled={!pyodideLoaded}
                             icon={<RotateLeftIcon />}
@@ -323,10 +404,27 @@ function Editor({ startingCode, testsProp, challengeId, authedUserId, access }) 
     )
 }
 
-function mapStateToProps(state){
+function mapStateToProps(state, {challengeId}) {
+    if (state.authedUser) {
+        let completedChallenges = state.authedUser.completedChallenges
+        let completionId = null
+        let userCompletedChallenge = false
+        completedChallenges.forEach((c)=> {
+            if(c.challenge === challengeId){
+                completionId = c.id
+                userCompletedChallenge = true
+            }
+        })
+        console.log("userCompletedChallenge is", completedChallenges.includes(challengeId))
+        return {
+            authedUserId: state.authedUser.id,
+            access: state.authedUser.access,
+            userCompletedChallenge,
+            completionId 
+        }
+    }
     return {
-        authedUserId: state.authedUser.id,
-        access: state.authedUser.access
+        userCompletedChallenges: []
     }
 }
 

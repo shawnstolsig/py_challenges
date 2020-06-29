@@ -20,6 +20,17 @@ export function login({ username, password }) {
   })
 }
 
+/// for getting extra user information/profile
+export function getUserInfo(id, access){
+    return axios({
+      method: 'get',
+      url: `${baseApiUrl}api/v1/user/${id}/`,
+      headers: {
+        authorization: `Bearer ${access}`
+      },
+    })
+}
+
 export function register({username, password}) {
     // post to backend Djoser endpoint to create access and refresh tokens
     return axios({
@@ -43,6 +54,8 @@ export function getUserFromToken(access) {
   })
 }
 
+
+
 // function for updating access token with provided refresh token 
 export function refreshToken(refresh){
   return axios({
@@ -58,7 +71,7 @@ export function refreshToken(refresh){
 export function saveNewCode({code, title, user, challenge}, access){
   return axios({
     method: 'post',
-    url: `${baseApiUrl}/api/v1/code/`,
+    url: `${baseApiUrl}api/v1/code/`,
     headers: {
       authorization: `Bearer ${access}`
     },
@@ -75,12 +88,40 @@ export function saveNewCode({code, title, user, challenge}, access){
 export function saveCode({id, code}, access){
   return axios({
     method: 'patch',
-    url: `${baseApiUrl}/api/v1/code/${id}/`,
+    url: `${baseApiUrl}api/v1/code/${id}/`,
     headers: {
       authorization: `Bearer ${access}`
     },
     data: {
       code, 
     }
+  })
+}
+
+// for marking a challenge as complete
+export function toggleCompleted({challengeId, completedId, user, markComplete}, access){
+
+  // if marking as completed, post to db
+  if(markComplete){
+    return axios({
+      method: 'post',
+      url: `${baseApiUrl}api/v1/completions/`,
+      headers: {
+        authorization: `Bearer ${access}`
+      },
+      data: {
+        user,
+        challenge: challengeId
+      }
+    })
+  }
+
+  // if not marked completed, delete completion from databae
+  return axios({
+    method: 'delete',
+    url: `${baseApiUrl}api/v1/completions/${completedId}/`,
+    headers: {
+      authorization: `Bearer ${access}`
+    },
   })
 }
