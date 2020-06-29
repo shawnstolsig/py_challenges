@@ -35,7 +35,7 @@ import { connect } from 'react-redux'
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
 import { saveNewCode, saveCode } from '../util/api'
-import { handleCreateCompletion, handleRemoveCompletion, initPyodide } from '../actions/challenge'
+import { handleCreateCompletion, handleRemoveCompletion } from '../actions/editor'
 
 // material UI classes for style
 const useStyles = makeStyles((theme) => ({
@@ -91,7 +91,6 @@ function Editor(props) {
 
     // update state whenever challenge changes
     React.useEffect(() => {
-
         setCode(startingCode)
         setIsCodeValid(false)
         setTestsPassed(false)
@@ -130,9 +129,6 @@ function Editor(props) {
 
             // enable the Run Code
             setPyodideLoaded(true)
-
-            // enable pyodide in state
-            dispatch(initPyodide())
         });
     }
 
