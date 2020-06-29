@@ -10,6 +10,9 @@ import React from 'react'
 import AceEditor from 'react-ace'
 import "ace-builds/src-noconflict/mode-python"
 import "ace-builds/src-noconflict/theme-github"
+import "ace-builds/src-noconflict/snippets/python"
+import "ace-builds/src-min-noconflict/ext-searchbox";
+import "ace-builds/src-min-noconflict/ext-language_tools";
 import { makeStyles } from '@material-ui/core/styles'
 import {
     Box,
@@ -31,7 +34,8 @@ import { connect } from 'react-redux'
 // project imports
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
-import { saveNewCode, saveCode, toggleCompleted } from '../util/api'
+import { saveNewCode, saveCode } from '../util/api'
+import { handleCreateCompletion, handleRemoveCompletion } from '../actions/editor'
 
 // material UI classes for style
 const useStyles = makeStyles((theme) => ({
@@ -62,7 +66,7 @@ function Editor(props) {
     const [isCodeValid, setIsCodeValid] = React.useState(false)             // check user's code for before allowing tests
     const [testsPassed, setTestsPassed] = React.useState(false)             // tests pass
     const [loadedSolution, setLoadedSolution] = React.useState(null)        // state for loaded solution
-    const [challengeCompleted, setChallengeCompleted] = React.useState(false)
+    const [challengeCompleted, setChallengeCompleted] = React.useState({completed: false, id: null})
 
     // load piodide and hook into browser console on initial render
     React.useEffect(() => {
@@ -95,9 +99,8 @@ function Editor(props) {
 
     // set flag if user has completed this challenge or not
     React.useEffect(() => {
-        console.log("in useEffect, setting completedChallenge to ", userCompletedChallenge)
-        setChallengeCompleted(userCompletedChallenge)
-    }, [challengeId, userCompletedChallenge])
+        setChallengeCompleted({id: completionId, completed: userCompletedChallenge})
+    }, [challengeId, userCompletedChallenge, completionId])
 
     // editor load function (maybe do something else here with the UI?)
     const onEditorLoad = () => console.log("Text editor has loaded.")
@@ -253,34 +256,19 @@ function Editor(props) {
 
     // mark challenge as complete
     const toggleCompletion = () => {
-        console.log("toggling")
 
         // if challenge is completed, then delete completion entry
-        if(challengeCompleted){
-            toggleCompleted({
-                completedId: completionId,
-                markComplete: false
-            }, access)
-            .then(()=>{
-                setChallengeCompleted(false)
-                // also post to store?
-            })
-            .catch(()=>alert("error toggling"))
+        if(challengeCompleted.completed){
+            // this works for initial render, when the completionId comes in from mapStateToProps
+            // need to track in state for when completion is created in the component though
+            dispatch(handleRemoveCompletion({completionId}, access))
         } 
         // if challenge is not completed, then post completion
         else {
-            toggleCompleted({
+            dispatch(handleCreateCompletion({
+                userId: authedUserId,
                 challengeId,
-                user: authedUserId,
-                markComplete: true
-            }, access)
-            .then((res)=>{
-                setChallengeCompleted(true)
-                // also post to store?  with res.data.id    
-                // the current issue is that even that the backend has the new completion, the store does not
-                // so when a completion is created, must also add to store.  do this optimistically? 
-            })
-            .catch(()=>alert("error toggling"))
+            }, access))
         }
     }
 
@@ -325,7 +313,7 @@ function Editor(props) {
                                 />
                             </Grid>
                             <Grid item>
-                                {challengeCompleted
+                                {challengeCompleted.completed
                                     ? <EditorControlButton
                                         onClick={toggleCompletion}
                                         icon={<CheckBoxIcon />}

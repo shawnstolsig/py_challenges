@@ -98,25 +98,23 @@ export function saveCode({id, code}, access){
   })
 }
 
-// for marking a challenge as complete
-export function toggleCompleted({challengeId, completedId, user, markComplete}, access){
+// for marking a challenge as complete by posting to db
+export function postCompletion({user, challenge}, access){
+  return axios({
+    method: 'post',
+    url: `${baseApiUrl}api/v1/completions/`,
+    headers: {
+      authorization: `Bearer ${access}`
+    },
+    data: {
+      user,
+      challenge,
+    }
+  })
+}
 
-  // if marking as completed, post to db
-  if(markComplete){
-    return axios({
-      method: 'post',
-      url: `${baseApiUrl}api/v1/completions/`,
-      headers: {
-        authorization: `Bearer ${access}`
-      },
-      data: {
-        user,
-        challenge: challengeId
-      }
-    })
-  }
-
-  // if not marked completed, delete completion from databae
+// for removing a challenge from db
+export function deleteCompletion({completedId}, access){
   return axios({
     method: 'delete',
     url: `${baseApiUrl}api/v1/completions/${completedId}/`,
@@ -125,3 +123,29 @@ export function toggleCompleted({challengeId, completedId, user, markComplete}, 
     },
   })
 }
+// export function toggleCompleted({challengeId, completedId, user, markComplete}, access){
+
+//   // if marking as completed, post to db
+//   if(markComplete){
+//     return axios({
+//       method: 'post',
+//       url: `${baseApiUrl}api/v1/completions/`,
+//       headers: {
+//         authorization: `Bearer ${access}`
+//       },
+//       data: {
+//         user,
+//         challenge: challengeId
+//       }
+//     })
+//   }
+
+//   // if not marked completed, delete completion from databae
+//   return axios({
+//     method: 'delete',
+//     url: `${baseApiUrl}api/v1/completions/${completedId}/`,
+//     headers: {
+//       authorization: `Bearer ${access}`
+//     },
+//   })
+// }

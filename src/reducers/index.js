@@ -6,5 +6,4 @@ import authReducer from './auth'
 export default combineReducers({
   // topic: topicReducer, 
   authedUser: authReducer,
-  
 })
