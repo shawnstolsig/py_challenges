@@ -5,6 +5,8 @@ export const REMOVE_COMPLETION = "REMOVE_COMPLETION"
 export const LOAD_CHALLENGE = "LOAD_CHALLENGE"
 export const CLOSE_CHALLENGE = "CLOSE_CHALLENGE"
 export const INIT_PYODIDE = "INIT_PYODIDE"
+export const CLEAR_LOGS = "CLEAR_LOGS"
+export const ADD_LOG = 'ADD_LOG'
 
 function createCompletion(userId, challengeId, completionId){
     return {
@@ -23,7 +25,6 @@ function removeCompletion(completionId){
 }
 
 function loadChallenge({ challenge, completion, snippets }){
-    console.log(`action has been dispatched, challenge is: `, challenge)
     return {
         type: LOAD_CHALLENGE,
         challenge,
@@ -44,7 +45,20 @@ export function initPyodide(){
     }
 }
 
-export function handleCreateCompletion({userId, challengeId}, access){
+export function clearLogs(){
+    return {
+        type: CLEAR_LOGS
+    }
+}
+
+export function addLog(log){
+    return {
+        type: ADD_LOG,
+        log
+    }
+}
+
+export function handleCreateCompletion({userId, challengeId}, access, setCompletionData){
     return (dispatch) => {
         postCompletion({
             user: userId,
@@ -52,6 +66,7 @@ export function handleCreateCompletion({userId, challengeId}, access){
         }, access)
         .then((res) => {
             dispatch(createCompletion(userId, challengeId, res.data.id))
+            setCompletionData({id: res.data.id, user: userId, challenge: challengeId})
         })
         .catch((err) => {
             console.log("Error posting completion: ")
@@ -60,13 +75,12 @@ export function handleCreateCompletion({userId, challengeId}, access){
     }
 }
 
-export function handleRemoveCompletion({completionId}, access){
+export function handleRemoveCompletion(completionId, access, setCompletionData){
     return (dispatch) => {
-        deleteCompletion({
-            completionId
-        }, access)
-        .then((res) => {
+        deleteCompletion(completionId, access)
+        .then(() => {
             dispatch(removeCompletion(completionId))
+            setCompletionData(undefined)
         })
         .catch((err) => {
             console.log("Error removing completion: ")

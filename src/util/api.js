@@ -114,7 +114,7 @@ export function postCompletion({user, challenge}, access){
 }
 
 // for removing a challenge from db
-export function deleteCompletion({completedId}, access){
+export function deleteCompletion(completedId, access){
   return axios({
     method: 'delete',
     url: `${baseApiUrl}api/v1/completions/${completedId}/`,

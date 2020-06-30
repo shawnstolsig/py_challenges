@@ -23,22 +23,22 @@ export default function authReducer(state = null, action) {
       }
     case LOGOUT_USER:
       return null
-    // case CREATE_COMPLETION:
-    //   let withAddedCompletion = state.completedChallenges.concat([{
-    //     user: action.userId,
-    //     challenge: action.challengeId,
-    //     id: action.completionId
-    //   }])
-    //   return {
-    //     ...state,
-    //     completedChallenges: withAddedCompletion
-    //   }
-    // case REMOVE_COMPLETION:
-    //   let withRemovedCompletion = state.completedChallenges.filter((c) => c.id !== action.completionId)
-    //   return {
-    //     ...state,
-    //     completedChallenges: withRemovedCompletion
-    //   }
+    case CREATE_COMPLETION:
+      let withAddedCompletion = state.completedChallenges.concat([{
+        user: action.userId,
+        challenge: action.challengeId,
+        id: action.completionId
+      }])
+      return {
+        ...state,
+        completedChallenges: withAddedCompletion
+      }
+    case REMOVE_COMPLETION:
+      let withRemovedCompletion = state.completedChallenges.filter((c) => c.id !== action.completionId)
+      return {
+        ...state,
+        completedChallenges: withRemovedCompletion
+      }
     default:
       return state
   }

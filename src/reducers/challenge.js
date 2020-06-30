@@ -6,7 +6,9 @@ import {
   CLOSE_CHALLENGE, 
   CREATE_COMPLETION, 
   REMOVE_COMPLETION,
-  INIT_PYODIDE 
+  INIT_PYODIDE,
+  CLEAR_LOGS,
+  ADD_LOG
 } from '../actions/challenge'
 
 const initialState = {
@@ -18,7 +20,6 @@ export default function challengeReducer(state = initialState, action) {
   switch (action.type) {
     // when the editor loads, it will pull all information relative to that challenge from store.authedUser
     case LOAD_CHALLENGE:
-      console.log("in reducer and challenge is now", action.challenge)
       return {
         ...state,    // for logs and pyodideLoaded
         snippets: action.snippets,
@@ -36,22 +37,32 @@ export default function challengeReducer(state = initialState, action) {
         ...state,
         pyodideLoaded: true
       }
-    case CREATE_COMPLETION:
-      let withAddedCompletion = state.completedChallenges.concat([{
-        user: action.userId,
-        challenge: action.challengeId,
-        id: action.completionId
-      }])
+    case CLEAR_LOGS:
       return {
         ...state,
-        completedChallenges: withAddedCompletion
+        logs: []
       }
-    case REMOVE_COMPLETION:
-      let withRemovedCompletion = state.completedChallenges.filter((c) => c.id !== action.completionId)
+    case ADD_LOG:
       return {
         ...state,
-        completedChallenges: withRemovedCompletion
+        logs: state.logs.concat(action.log)
       }
+    // case CREATE_COMPLETION:
+    //   let withAddedCompletion = state.completedChallenges.concat([{
+    //     user: action.userId,
+    //     challenge: action.challengeId,
+    //     id: action.completionId
+    //   }])
+    //   return {
+    //     ...state,
+    //     completedChallenges: withAddedCompletion
+    //   }
+    // case REMOVE_COMPLETION:
+    //   let withRemovedCompletion = state.completedChallenges.filter((c) => c.id !== action.completionId)
+    //   return {
+    //     ...state,
+    //     completedChallenges: withRemovedCompletion
+    //   }
     default:
       return state
   }

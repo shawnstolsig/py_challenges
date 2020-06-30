@@ -194,7 +194,7 @@ function Nav({ authedUser, dispatch }) {
 
 function mapStateToProps(state) {
   return {
-    authedUser: state.authedUser
+    authedUser: state.authedUser,
   }
 }
 

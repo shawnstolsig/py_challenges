@@ -25,15 +25,6 @@ const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
   },
-  // menuButton: {
-  //   marginRight: theme.spacing(2),
-  //   [theme.breakpoints.up('sm')]: {
-  //     display: 'none',
-  //   },
-  // },
-  content: {
-    // margin: theme.spacing(4),
-  },
 }));
 
 
@@ -46,7 +37,6 @@ function Challenge({ dispatch, challenge, completion, snippets }) {
 
   // push all challenge info to store
   React.useEffect(() => {
-    console.log("Component sees new challenge...", challenge, completion, snippets)
     dispatch(handleLoadChallenge({ challenge, completion, snippets }))
   }, [challenge])
 
@@ -100,7 +90,7 @@ function Challenge({ dispatch, challenge, completion, snippets }) {
       {/* Seperate grid for Ace Editor and pypy.js output */}
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Editor startingCode={startingCode} testsProp={tests} challengeId={id} />
+          <Editor />
         </Grid>
       </Grid>
 

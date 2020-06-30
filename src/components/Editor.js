@@ -35,7 +35,13 @@ import { connect } from 'react-redux'
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
 import { saveNewCode, saveCode } from '../util/api'
-import { handleCreateCompletion, handleRemoveCompletion, initPyodide } from '../actions/challenge'
+import { 
+    handleCreateCompletion, 
+    handleRemoveCompletion, 
+    initPyodide,
+    clearLogs,
+    addLog
+ } from '../actions/challenge'
 
 // material UI classes for style
 const useStyles = makeStyles((theme) => ({
@@ -49,29 +55,39 @@ const useStyles = makeStyles((theme) => ({
 function Editor(props) {
     const classes = useStyles()
     const { 
-        startingCode, 
-        testsProp, 
-        challengeId, 
-        authedUserId, 
-        access, 
-        userCompletedChallenge,
-        completionId,
-        dispatch
+        user,
+        challenge,
+        dispatch,
+        logs,
+        pyodideLoaded
     } = props
 
+    let startingCode = ''
+    let tests = null
+    let completion = null
+    if(challenge){
+        startingCode = challenge.startingCode
+        tests = challenge.tests
+        completion = challenge.completion
+    } 
+
+    let access = null
+    if(user){
+        access = user.access
+    } 
+
     // state 
-    const [code, setCode] = React.useState(startingCode)                    // user's code
-    const [logs, setLogs] = React.useState([])                              // console for print statements
-    const [pyodideLoaded, setPyodideLoaded] = React.useState(false)         // indicates when pyodide is ready
+    const [code, setCode] = React.useState(startingCode)                    // where the user's code will go
     const [isCodeValid, setIsCodeValid] = React.useState(false)             // check user's code for before allowing tests
     const [testsPassed, setTestsPassed] = React.useState(false)             // tests pass
     const [loadedSolution, setLoadedSolution] = React.useState(null)        // state for loaded solution
-    const [challengeCompleted, setChallengeCompleted] = React.useState({completed: false, id: null})
+    const [completionData, setCompletionData] = React.useState(completion)
 
     // load piodide and hook into browser console on initial render
     React.useEffect(() => {
         loadPython()
-        Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
+        // Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
+        Hook(window.console, (log) => dispatch(addLog(log)))
     }, [])
 
     // create a memoized version of clearPythonHistory so that it persists across renders 
@@ -91,17 +107,12 @@ function Editor(props) {
 
     // update state whenever challenge changes
     React.useEffect(() => {
-
         setCode(startingCode)
         setIsCodeValid(false)
         setTestsPassed(false)
         clearPythonHistory()
-    }, [startingCode, clearPythonHistory])
-
-    // set flag if user has completed this challenge or not
-    React.useEffect(() => {
-        setChallengeCompleted({id: completionId, completed: userCompletedChallenge})
-    }, [challengeId, userCompletedChallenge, completionId])
+        setCompletionData(completion)
+    }, [startingCode, completion, clearPythonHistory])
 
     // editor load function (maybe do something else here with the UI?)
     const onEditorLoad = () => console.log("Text editor has loaded.")
@@ -128,9 +139,6 @@ function Editor(props) {
             // store the default objects for later use
             pyodide.runPython('pyodide_dir = dir()')
 
-            // enable the Run Code
-            setPyodideLoaded(true)
-
             // enable pyodide in state
             dispatch(initPyodide())
         });
@@ -138,7 +146,7 @@ function Editor(props) {
 
     // command for clearing console
     const clearConsole = () => {
-        setLogs([])
+        dispatch(clearLogs())
         console.log("Console cleared.")
     }
 
@@ -163,8 +171,8 @@ function Editor(props) {
         pyodide.runPython(code)
 
         // validate the correctly named function exists for the challenge
-        if (pyodide.globals[challengeId] === undefined) {
-            console.log(`Missing ${challengeId}() function.`)
+        if (pyodide.globals[challenge.id] === undefined) {
+            console.log(`Missing ${challenge.id}() function.`)
             return
         }
 
@@ -183,13 +191,13 @@ function Editor(props) {
         let combinedTestsPassed = true
 
         // get tests object.  this will have each test as a separate key
-        let tests = testsProp(pyodide.globals[challengeId])
+        let challengeTests = tests(pyodide.globals[challenge.id])
 
         // iterate through all tests and print passed/failed message
-        Object.keys(tests).forEach((x) => {
+        Object.keys(challengeTests).forEach((x) => {
 
             // get result of running test (true/false)
-            let result = tests[x].result()
+            let result = challengeTests[x].result()
 
             // if a test fails, set flag to false
             if (!result) {
@@ -197,7 +205,7 @@ function Editor(props) {
             }
 
             // print result of test to console
-            console.log(`Test: ${tests[x].name} - ${result ? "Passed" : "Failed"}`)
+            console.log(`Test: ${challengeTests[x].name} - ${result ? "Passed" : "Failed"}`)
         })
 
         // print message regarding completion/failure of challenge
@@ -217,62 +225,70 @@ function Editor(props) {
 
     // save new code
     const saveAs = () => {
-        // post to backend
-        saveNewCode({
-            code,
-            title: 'hardcoded title',
-            user: authedUserId,
-            challenge: challengeId
-        }, access)
-            // update state with response (this allows saving again, once we have code's id)
-            .then((res) => {
-                setLoadedSolution({
-                    id: res.data.id,
-                    code,
-                    title: 'hardcoded title',
-                })
-            })
-            .catch((error) => {
-                console.log('unable to saveNew, error: ')
-                console.log(error)
-            })
+        alert('fix me')
+        // this needs to be moved to action file
+
+        // // post to backend
+        // saveNewCode({
+        //     code,
+        //     title: 'hardcoded title',
+        //     user: authedUserId,
+        //     challenge: challengeId
+        // }, access)
+        //     // update state with response (this allows saving again, once we have code's id)
+        //     .then((res) => {
+        //         setLoadedSolution({
+        //             id: res.data.id,
+        //             code,
+        //             title: 'hardcoded title',
+        //         })
+        //     })
+        //     .catch((error) => {
+        //         console.log('unable to saveNew, error: ')
+        //         console.log(error)
+        //     })
+        
     }
 
     // save existing code
     const save = () => {
-        // post to backend
-        saveCode({
-            id: loadedSolution.id,
-            code,
-        }, access)
-            .then(() => {
-                console.log(`"${loadedSolution.title}" code saved.`)
-                setLoadedSolution({
-                    ...loadedSolution,
-                    code,
-                })
-            })
-            .catch((error) => {
-                console.log('unable to save, error: ')
-                console.log(error)
-            })
+        alert('fix me')
+        // this needs to move to action file
+
+        // // post to backend
+        // saveCode({
+        //     id: loadedSolution.id,
+        //     code,
+        // }, access)
+        //     .then(() => {
+        //         console.log(`"${loadedSolution.title}" code saved.`)
+        //         setLoadedSolution({
+        //             ...loadedSolution,
+        //             code,
+        //         })
+        //     })
+        //     .catch((error) => {
+        //         console.log('unable to save, error: ')
+        //         console.log(error)
+        //     })
     }
 
     // mark challenge as complete
     const toggleCompletion = () => {
-
         // if challenge is completed, then delete completion entry
-        if(challengeCompleted.completed){
+        if(completion){
+            console.log("completion found, removing this completion")
             // this works for initial render, when the completionId comes in from mapStateToProps
             // need to track in state for when completion is created in the component though
-            dispatch(handleRemoveCompletion({completionId}, access))
+            dispatch(handleRemoveCompletion(completion.id, access, setCompletionData))
         } 
         // if challenge is not completed, then post completion
         else {
+            console.log("completion not found, posting new completion")
             dispatch(handleCreateCompletion({
-                userId: authedUserId,
-                challengeId,
-            }, access))
+                userId: user.id,
+                challengeId: challenge.id,
+            }, access, setCompletionData))
         }
     }
 
@@ -299,7 +315,7 @@ function Editor(props) {
                         />
                     </Grid>
                     {/* Only show save and "mark completed" buttons if logged in */}
-                    {authedUserId &&
+                    {user &&
                         <React.Fragment>
                             <Grid item>
                                 <EditorControlButton
@@ -317,7 +333,7 @@ function Editor(props) {
                                 />
                             </Grid>
                             <Grid item>
-                                {challengeCompleted.completed
+                                {completionData 
                                     ? <EditorControlButton
                                         onClick={toggleCompletion}
                                         icon={<CheckBoxIcon />}
@@ -396,27 +412,46 @@ function Editor(props) {
     )
 }
 
-function mapStateToProps(state, {challengeId}) {
-    if (state.authedUser) {
-        let completedChallenges = state.authedUser.completedChallenges
-        let completionId = null
-        let userCompletedChallenge = false
-        completedChallenges.forEach((c)=> {
-            if(c.challenge === challengeId){
-                completionId = c.id
-                userCompletedChallenge = true
-            }
-        })
-        console.log("userCompletedChallenge is", completedChallenges.includes(challengeId))
-        return {
-            authedUserId: state.authedUser.id,
-            access: state.authedUser.access,
-            userCompletedChallenge,
-            completionId 
+function mapStateToProps(state) {
+
+    // get relevant challenge state (startingCode, tests)
+    let challengeInfo
+    if(state.challenge.challenge){
+        const activeChallenge = state.challenge.challenge
+        challengeInfo = {
+            id: activeChallenge.id,
+            startingCode: activeChallenge.startingCode,
+            tests: activeChallenge.tests,
+            completion: state.challenge.completion
         }
     }
+
+    // get deconstruct user info from state, reconstruct into just the pieces we want
+    let userInfo
+    if(state.authedUser){
+        const { 
+            id,
+            editorTheme,
+            tabSize,
+            darkModeEnabled,
+            access
+        } = state.authedUser
+        userInfo = {
+            id,
+            editorTheme,
+            tabSize,
+            darkModeEnabled,
+            access
+        }
+    } else {
+        userInfo = null
+    }
+
     return {
-        userCompletedChallenges: []
+        challenge: challengeInfo,
+        user: userInfo,
+        logs: state.challenge.logs,
+        pyodideLoaded: state.challenge.pyodideLoaded
     }
 }
 
