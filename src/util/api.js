@@ -69,6 +69,7 @@ export function refreshToken(refresh){
 
 // function for saving new user code to db
 export function saveNewCode({code, title, user, challenge}, access){
+  console.log("in saveNewCode")
   return axios({
     method: 'post',
     url: `${baseApiUrl}api/v1/code/`,

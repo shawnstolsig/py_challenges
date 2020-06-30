@@ -16,7 +16,14 @@ import "ace-builds/src-min-noconflict/ext-language_tools";
 import { makeStyles } from '@material-ui/core/styles'
 import {
     Box,
-    Grid
+    Grid,
+    Dialog,
+    DialogTitle, 
+    DialogContent,
+    DialogContentText,
+    TextField,
+    DialogActions,
+    Button
 } from '@material-ui/core'
 import {
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
@@ -26,6 +33,7 @@ import {
     AssignmentTurnedIn as AssignmentTurnedInIcon,
     PlayArrow as PlayArrowIcon,
     Save as SaveIcon,
+    SignalCellularNull,
 } from '@material-ui/icons'
 import { red, green } from '@material-ui/core/colors'
 import { Hook, Console, Decode } from 'console-feed'
@@ -34,14 +42,15 @@ import { connect } from 'react-redux'
 // project imports
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
-import { saveNewCode, saveCode } from '../util/api'
-import { 
-    handleCreateCompletion, 
-    handleRemoveCompletion, 
+
+import {
+    handleCreateCompletion,
+    handleRemoveCompletion,
     initPyodide,
     clearLogs,
-    addLog
- } from '../actions/challenge'
+    addLog,
+    handleSaveAs
+} from '../actions/challenge'
 
 // material UI classes for style
 const useStyles = makeStyles((theme) => ({
@@ -54,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
 
 function Editor(props) {
     const classes = useStyles()
-    const { 
+    const {
         user,
         challenge,
         dispatch,
@@ -65,16 +74,20 @@ function Editor(props) {
     let startingCode = ''
     let tests = null
     let completion = null
-    if(challenge){
+    let challengeId = null
+    if (challenge) {
         startingCode = challenge.startingCode
         tests = challenge.tests
         completion = challenge.completion
-    } 
+        challengeId = challenge.id
+    }
 
     let access = null
-    if(user){
+    let userId = null
+    if (user) {
         access = user.access
-    } 
+        userId = user.id
+    }
 
     // state 
     const [code, setCode] = React.useState(startingCode)                    // where the user's code will go
@@ -82,6 +95,8 @@ function Editor(props) {
     const [testsPassed, setTestsPassed] = React.useState(false)             // tests pass
     const [loadedSolution, setLoadedSolution] = React.useState(null)        // state for loaded solution
     const [completionData, setCompletionData] = React.useState(completion)
+    const [codeNameDialog, setCodeNameDialog] = React.useState(false)
+    const [codeName, setCodeName] = React.useState('')
 
     // load piodide and hook into browser console on initial render
     React.useEffect(() => {
@@ -112,6 +127,8 @@ function Editor(props) {
         setTestsPassed(false)
         clearPythonHistory()
         setCompletionData(completion)
+        setCodeNameDialog(false)
+        setCodeName('')
     }, [startingCode, completion, clearPythonHistory])
 
     // editor load function (maybe do something else here with the UI?)
@@ -225,29 +242,15 @@ function Editor(props) {
 
     // save new code
     const saveAs = () => {
-        alert('fix me')
-        // this needs to be moved to action file
+        console.log("in saveAS")
+        dispatch(handleSaveAs({
+            code,
+            challenge: challengeId,
+            user: userId,
+            title: codeName
+        }, access, setLoadedSolution))
 
-        // // post to backend
-        // saveNewCode({
-        //     code,
-        //     title: 'hardcoded title',
-        //     user: authedUserId,
-        //     challenge: challengeId
-        // }, access)
-        //     // update state with response (this allows saving again, once we have code's id)
-        //     .then((res) => {
-        //         setLoadedSolution({
-        //             id: res.data.id,
-        //             code,
-        //             title: 'hardcoded title',
-        //         })
-        //     })
-        //     .catch((error) => {
-        //         console.log('unable to saveNew, error: ')
-        //         console.log(error)
-        //     })
-        
+        handleDialogClose()
     }
 
     // save existing code
@@ -273,15 +276,20 @@ function Editor(props) {
         //     })
     }
 
+    const handleDialogClose = () => {
+        setCodeNameDialog(false)
+        setCodeName('')
+    }
+
     // mark challenge as complete
     const toggleCompletion = () => {
         // if challenge is completed, then delete completion entry
-        if(completion){
+        if (completion) {
             console.log("completion found, removing this completion")
             // this works for initial render, when the completionId comes in from mapStateToProps
             // need to track in state for when completion is created in the component though
             dispatch(handleRemoveCompletion(completion.id, access, setCompletionData))
-        } 
+        }
         // if challenge is not completed, then post completion
         else {
             console.log("completion not found, posting new completion")
@@ -319,7 +327,7 @@ function Editor(props) {
                         <React.Fragment>
                             <Grid item>
                                 <EditorControlButton
-                                    onClick={saveAs}
+                                    onClick={() => setCodeNameDialog(true)}
                                     icon={<SaveIcon />}
                                     text="Save As..."
                                 />
@@ -333,7 +341,7 @@ function Editor(props) {
                                 />
                             </Grid>
                             <Grid item>
-                                {completionData 
+                                {completionData
                                     ? <EditorControlButton
                                         onClick={toggleCompletion}
                                         icon={<CheckBoxIcon />}
@@ -408,6 +416,32 @@ function Editor(props) {
                 </Box>
             </Grid>
 
+            {/* Popup for saving new snippet */}
+            <Dialog open={codeNameDialog} onClose={handleDialogClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Save as...</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                    Enter name for this code snippet:
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        label="Name"
+                        fullWidth
+                        onChange={(e) => setCodeName(e.target.value)}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={saveAs} color="primary">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
         </Grid>
     )
 }
@@ -416,7 +450,7 @@ function mapStateToProps(state) {
 
     // get relevant challenge state (startingCode, tests)
     let challengeInfo
-    if(state.challenge.challenge){
+    if (state.challenge.challenge) {
         const activeChallenge = state.challenge.challenge
         challengeInfo = {
             id: activeChallenge.id,
@@ -428,8 +462,8 @@ function mapStateToProps(state) {
 
     // get deconstruct user info from state, reconstruct into just the pieces we want
     let userInfo
-    if(state.authedUser){
-        const { 
+    if (state.authedUser) {
+        const {
             id,
             editorTheme,
             tabSize,

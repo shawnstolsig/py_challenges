@@ -1,7 +1,7 @@
 // Reducer function related to user authentication actions.
 
 import { LOGIN_USER, LOGOUT_USER } from '../actions/auth'
-import { CREATE_COMPLETION, REMOVE_COMPLETION } from '../actions/challenge'
+import { CREATE_COMPLETION, REMOVE_COMPLETION, SAVE_AS } from '../actions/challenge'
 
 export default function authReducer(state = null, action) {
   switch (action.type) {
@@ -38,6 +38,20 @@ export default function authReducer(state = null, action) {
       return {
         ...state,
         completedChallenges: withRemovedCompletion
+      }
+    case SAVE_AS:
+      let withNewSnippet = state.snippets.concat([{
+        id: action.id,
+        code: action.code,
+        challenge: action.challenge,
+        title: action.title,
+        date_created: action.date_created,
+        date_updated: action.date_updated,
+        user: action.user
+      }])
+      return {
+        ...state,
+        snippets: withNewSnippet
       }
     default:
       return state
