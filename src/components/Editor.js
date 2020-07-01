@@ -284,15 +284,11 @@ function Editor(props) {
     // mark challenge as complete
     const toggleCompletion = () => {
         // if challenge is completed, then delete completion entry
-        if (completion) {
-            console.log("completion found, removing this completion")
-            // this works for initial render, when the completionId comes in from mapStateToProps
-            // need to track in state for when completion is created in the component though
-            dispatch(handleRemoveCompletion(completion.id, access, setCompletionData))
+        if (completionData) {
+            dispatch(handleRemoveCompletion(completionData.id, access, setCompletionData))
         }
         // if challenge is not completed, then post completion
         else {
-            console.log("completion not found, posting new completion")
             dispatch(handleCreateCompletion({
                 userId: user.id,
                 challengeId: challenge.id,

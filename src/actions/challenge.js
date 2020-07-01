@@ -78,6 +78,7 @@ export function handleCreateCompletion({userId, challengeId}, access, setComplet
             challenge: challengeId
         }, access)
         .then((res) => {
+            console.log('creation completed in db, dispatching to store and component state', res.data)
             dispatch(createCompletion(userId, challengeId, res.data.id))
             setCompletionData({id: res.data.id, user: userId, challenge: challengeId})
         })
