@@ -49,7 +49,8 @@ import {
     initPyodide,
     clearLogs,
     addLog,
-    handleSaveAs
+    handleSaveAs,
+    handleSave
 } from '../actions/challenge'
 
 // material UI classes for style
@@ -122,6 +123,7 @@ function Editor(props) {
 
     // update state whenever challenge changes
     React.useEffect(() => {
+        setLoadedSolution(null)     
         setCode(startingCode)
         setIsCodeValid(false)
         setTestsPassed(false)
@@ -242,7 +244,6 @@ function Editor(props) {
 
     // save new code
     const saveAs = () => {
-        console.log("in saveAS")
         dispatch(handleSaveAs({
             code,
             challenge: challengeId,
@@ -255,25 +256,7 @@ function Editor(props) {
 
     // save existing code
     const save = () => {
-        alert('fix me')
-        // this needs to move to action file
-
-        // // post to backend
-        // saveCode({
-        //     id: loadedSolution.id,
-        //     code,
-        // }, access)
-        //     .then(() => {
-        //         console.log(`"${loadedSolution.title}" code saved.`)
-        //         setLoadedSolution({
-        //             ...loadedSolution,
-        //             code,
-        //         })
-        //     })
-        //     .catch((error) => {
-        //         console.log('unable to save, error: ')
-        //         console.log(error)
-        //     })
+        handleSave({loadedSolution, code}, access, setLoadedSolution)
     }
 
     const handleDialogClose = () => {

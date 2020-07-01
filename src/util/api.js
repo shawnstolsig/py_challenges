@@ -69,7 +69,6 @@ export function refreshToken(refresh){
 
 // function for saving new user code to db
 export function saveNewCode({code, title, user, challenge}, access){
-  console.log("in saveNewCode")
   return axios({
     method: 'post',
     url: `${baseApiUrl}api/v1/code/`,
@@ -124,29 +123,3 @@ export function deleteCompletion(completedId, access){
     },
   })
 }
-// export function toggleCompleted({challengeId, completedId, user, markComplete}, access){
-
-//   // if marking as completed, post to db
-//   if(markComplete){
-//     return axios({
-//       method: 'post',
-//       url: `${baseApiUrl}api/v1/completions/`,
-//       headers: {
-//         authorization: `Bearer ${access}`
-//       },
-//       data: {
-//         user,
-//         challenge: challengeId
-//       }
-//     })
-//   }
-
-//   // if not marked completed, delete completion from databae
-//   return axios({
-//     method: 'delete',
-//     url: `${baseApiUrl}api/v1/completions/${completedId}/`,
-//     headers: {
-//       authorization: `Bearer ${access}`
-//     },
-//   })
-// }

@@ -1,10 +1,11 @@
 // Reducer function related to user authentication actions.
 
 import { LOGIN_USER, LOGOUT_USER } from '../actions/auth'
-import { CREATE_COMPLETION, REMOVE_COMPLETION, SAVE_AS } from '../actions/challenge'
+import { CREATE_COMPLETION, REMOVE_COMPLETION, SAVE_AS, SAVE } from '../actions/challenge'
 
 export default function authReducer(state = null, action) {
   switch (action.type) {
+
     case LOGIN_USER:
       return {
         id: action.userId,
@@ -21,8 +22,10 @@ export default function authReducer(state = null, action) {
         completedChallenges: action.completedChallenges,
         snippets: action.snippets
       }
+
     case LOGOUT_USER:
       return null
+
     case CREATE_COMPLETION:
       let withAddedCompletion = state.completedChallenges.concat([{
         user: action.userId,
@@ -33,12 +36,14 @@ export default function authReducer(state = null, action) {
         ...state,
         completedChallenges: withAddedCompletion
       }
+
     case REMOVE_COMPLETION:
       let withRemovedCompletion = state.completedChallenges.filter((c) => c.id !== action.completionId)
       return {
         ...state,
         completedChallenges: withRemovedCompletion
       }
+
     case SAVE_AS:
       let withNewSnippet = state.snippets.concat([{
         id: action.id,
@@ -53,7 +58,20 @@ export default function authReducer(state = null, action) {
         ...state,
         snippets: withNewSnippet
       }
+
+    case SAVE:
+      console.log(`auth.js says in SAVE case in reducer`)
+      state.snippets.forEach((x) => {
+        if(x.id === action.id){
+          x.code = action.code
+        }
+      })
+      return {
+        ...state,
+      }
+
     default:
       return state
+
   }
 }
