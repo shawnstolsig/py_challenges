@@ -18,12 +18,12 @@ const challenges = {
 		jsSolution: () => {
         let retArr = []
         for(let i = 1; i <= 100; i++){
-          if (i % 3 === 0 && i % 5 !== 0){
-            retArr.push('fizz')
+          if (i % 3 === 0 && i % 5 === 0){
+            retArr.push('FizzBuzz')
           } else if (i % 3 !== 0 && i % 5 === 0){
-            retArr.push('buzz')
-          } else if (i % 3 === 0 && i % 5 === 0){
-            retArr.push('fizzbuzz')
+            retArr.push('Buzz')
+          } else if (i % 3 === 0 && i % 5 !== 0){
+            retArr.push('Fizz')
           }
           else {
             retArr.push(i)

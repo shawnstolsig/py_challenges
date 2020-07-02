@@ -1,7 +1,13 @@
 // Reducer function related to user authentication actions.
 
 import { LOGIN_USER, LOGOUT_USER } from '../actions/auth'
-import { CREATE_COMPLETION, REMOVE_COMPLETION, SAVE_AS, SAVE } from '../actions/challenge'
+import { 
+  CREATE_COMPLETION, 
+  REMOVE_COMPLETION, 
+  SAVE_AS, 
+  SAVE, 
+  DELETE_SNIPPET 
+} from '../actions/challenge'
 
 export default function authReducer(state = null, action) {
   switch (action.type) {
@@ -60,7 +66,6 @@ export default function authReducer(state = null, action) {
       }
 
     case SAVE:
-      console.log(`auth.js says in SAVE case in reducer`)
       state.snippets.forEach((x) => {
         if(x.id === action.id){
           x.code = action.code
@@ -68,6 +73,12 @@ export default function authReducer(state = null, action) {
       })
       return {
         ...state,
+      }
+
+    case DELETE_SNIPPET:
+      return {
+        ...state,
+        snippets: state.snippets.filter((x) => x.id != action.id)
       }
 
     default:

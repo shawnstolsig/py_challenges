@@ -123,3 +123,14 @@ export function deleteCompletion(completedId, access){
     },
   })
 }
+
+// for deleting saved code solution
+export function deleteCode(id, access){
+  return axios({
+    method: 'delete',
+    url: `${baseApiUrl}api/v1/code/${id}/`,
+    headers: {
+      authorization: `Bearer ${access}`
+    },
+  })
+}

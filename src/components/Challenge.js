@@ -112,12 +112,10 @@ function mapStateToProps(state, { match }) {
 
     // filter down to only those applicable to current challenge
     const completion = allCompletedChallenges.filter((c) => c.challenge === match.params.id)[0]
-    const snippets = allUserSnippets.filter((s) => s.challenge === match.params.id)
 
     return {
       challenge,
       completion,
-      snippets,
     }
 
   }

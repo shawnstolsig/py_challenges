@@ -2,7 +2,8 @@ import {
     postCompletion,
     deleteCompletion,
     saveNewCode,
-    saveCode
+    saveCode,
+    deleteCode
 } from '../util/api'
 
 export const CREATE_COMPLETION = "CREATE_COMPLETION"
@@ -14,6 +15,7 @@ export const CLEAR_LOGS = "CLEAR_LOGS"
 export const ADD_LOG = 'ADD_LOG'
 export const SAVE_AS = 'SAVE_AS'
 export const SAVE = 'SAVE'
+export const DELETE_SNIPPET = 'DELETE_SNIPPET'
 
 function createCompletion(userId, challengeId, completionId) {
     return {
@@ -55,8 +57,15 @@ function saveAs(payload) {
 
 function save(payload) {
     return {
-        type: SAVE_AS,
+        type: SAVE,
         ...payload
+    }
+}
+
+function deleteSnippet(id){
+    return {
+        type: DELETE_SNIPPET,
+        id
     }
 }
 
@@ -152,15 +161,12 @@ export function handleSaveAs({ code, title, user, challenge }, access, setLoaded
                     title,
                 })
                 console.log(`Snippet "${title}" created!`)
+                // need to create state to hold all challenge snippets in component, and update this when new snippet created
             })
             .catch((error) => {
                 console.log('Error while trying to Save As: ')
                 console.log(error)
             })
-
-
-
-        dispatch(saveAs())
     }
 }
 
@@ -186,5 +192,14 @@ export function handleSave({ loadedSolution, code }, access, setLoadedSolution) 
                 console.log('Error while trying to Save: ')
                 console.log(error)
             })
+    }
+}
+
+export function handleDeleteCode(id, access){
+    return (dispatch) => {
+        deleteCode(id, access)
+        .then(() => {
+            dispatch(deleteSnippet(id))
+        })
     }
 }

@@ -77,8 +77,8 @@ export function handleLoginUser({ username, password }, history) {
         localStorage.setItem('access', access)
         localStorage.setItem('refresh', refresh)
 
-        // redirect to home
-        // history.push('/')
+        // redirect to previous page
+        history.goBack()
       })
       .catch((error) => {
         console.log("Error logging in: ")

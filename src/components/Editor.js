@@ -18,12 +18,18 @@ import {
     Box,
     Grid,
     Dialog,
-    DialogTitle, 
+    DialogTitle,
     DialogContent,
     DialogContentText,
     TextField,
     DialogActions,
-    Button
+    Button,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    IconButton,
+    Typography
 } from '@material-ui/core'
 import {
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
@@ -33,7 +39,9 @@ import {
     AssignmentTurnedIn as AssignmentTurnedInIcon,
     PlayArrow as PlayArrowIcon,
     Save as SaveIcon,
-    SignalCellularNull,
+    SaveAlt as SaveAltIcon,
+    OpenInBrowser as OpenInBrowserIcon,
+    Delete as DeleteIcon
 } from '@material-ui/icons'
 import { red, green } from '@material-ui/core/colors'
 import { Hook, Console, Decode } from 'console-feed'
@@ -50,7 +58,8 @@ import {
     clearLogs,
     addLog,
     handleSaveAs,
-    handleSave
+    handleSave,
+    handleDeleteCode
 } from '../actions/challenge'
 
 // material UI classes for style
@@ -85,9 +94,11 @@ function Editor(props) {
 
     let access = null
     let userId = null
+    let allUserSnippets = []
     if (user) {
         access = user.access
         userId = user.id
+        allUserSnippets = user.snippets
     }
 
     // state 
@@ -97,7 +108,9 @@ function Editor(props) {
     const [loadedSolution, setLoadedSolution] = React.useState(null)        // state for loaded solution
     const [completionData, setCompletionData] = React.useState(completion)
     const [codeNameDialog, setCodeNameDialog] = React.useState(false)
+    const [openSnippetDialog, setOpenSnippetDialog] = React.useState(false)
     const [codeName, setCodeName] = React.useState('')
+    const [openSnippetId, setOpenSnippetId] = React.useState(null)
 
     // load piodide and hook into browser console on initial render
     React.useEffect(() => {
@@ -123,13 +136,14 @@ function Editor(props) {
 
     // update state whenever challenge changes
     React.useEffect(() => {
-        setLoadedSolution(null)     
+        setLoadedSolution(null)
         setCode(startingCode)
         setIsCodeValid(false)
         setTestsPassed(false)
         clearPythonHistory()
         setCompletionData(completion)
         setCodeNameDialog(false)
+        setOpenSnippetDialog(false)
         setCodeName('')
     }, [startingCode, completion, clearPythonHistory])
 
@@ -256,12 +270,38 @@ function Editor(props) {
 
     // save existing code
     const save = () => {
-        handleSave({loadedSolution, code}, access, setLoadedSolution)
+        dispatch(handleSave({ loadedSolution, code }, access, setLoadedSolution))
     }
 
+    // for the new snippet naming dialog
     const handleDialogClose = () => {
+        setOpenSnippetDialog(false)
+        setOpenSnippetId(null)
         setCodeNameDialog(false)
         setCodeName('')
+    }
+
+    // open previous snippet
+    const open = () => {
+        const selectedSnippet = allUserSnippets.filter((s) => s.id === openSnippetId)[0]
+        setLoadedSolution({
+            id: selectedSnippet.id,
+            code: selectedSnippet.code,
+            title: selectedSnippet.title
+        })
+        setCode(selectedSnippet.code)
+        console.log(`${selectedSnippet.title} loaded!`)
+        handleDialogClose()
+    }
+
+    // for deleting snippet
+    const deleteSnippet = (id) => {
+        dispatch(handleDeleteCode(id, access))
+    }
+
+    // for getting relevant code snippets
+    const getChallengeSnippets = () => {
+        return allUserSnippets.filter((s) => s.challenge === challengeId)
     }
 
     // mark challenge as complete
@@ -307,7 +347,7 @@ function Editor(props) {
                             <Grid item>
                                 <EditorControlButton
                                     onClick={() => setCodeNameDialog(true)}
-                                    icon={<SaveIcon />}
+                                    icon={<SaveAltIcon />}
                                     text="Save As..."
                                 />
                             </Grid>
@@ -317,6 +357,13 @@ function Editor(props) {
                                     icon={<SaveIcon />}
                                     disabled={!loadedSolution}
                                     text="Save"
+                                />
+                            </Grid>
+                            <Grid item>
+                                <EditorControlButton
+                                    onClick={() => setOpenSnippetDialog(true)}
+                                    icon={<OpenInBrowserIcon />}
+                                    text="Open..."
                                 />
                             </Grid>
                             <Grid item>
@@ -400,7 +447,7 @@ function Editor(props) {
                 <DialogTitle id="form-dialog-title">Save as...</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                    Enter name for this code snippet:
+                        Enter name for this code snippet:
                     </DialogContentText>
                     <TextField
                         autoFocus
@@ -417,6 +464,49 @@ function Editor(props) {
                     </Button>
                     <Button onClick={saveAs} color="primary">
                         Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Popup for opening snippet */}
+            <Dialog open={openSnippetDialog} onClose={handleDialogClose} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Open...</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Select saved code from list below.
+                    </DialogContentText>
+                    {getChallengeSnippets().length === 0 && 
+                        <Typography variant="caption">(no saved solutions for this challenge)</Typography>
+                    }
+                    <List>
+                        {
+                            getChallengeSnippets().map((snippet) =>
+                                <ListItem
+                                    key={snippet.id}
+                                    selected={openSnippetId === snippet.id}
+                                    onClick={() => setOpenSnippetId(snippet.id)}
+                                    button>
+                                    <ListItemText primary={snippet.title} secondary={snippet.date_updated} />
+                                    <ListItemSecondaryAction>
+                                        <IconButton 
+                                            edge="end" 
+                                            aria-label="delete"
+                                            onClick={() => deleteSnippet(snippet.id)}>
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </ListItemSecondaryAction>
+                                </ListItem>
+                            )
+                        }
+                    </List>
+
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={open} color="primary" disabled={!openSnippetId}>
+                        Open
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -447,14 +537,16 @@ function mapStateToProps(state) {
             editorTheme,
             tabSize,
             darkModeEnabled,
-            access
+            access,
+            snippets
         } = state.authedUser
         userInfo = {
             id,
             editorTheme,
             tabSize,
             darkModeEnabled,
-            access
+            access,
+            snippets
         }
     } else {
         userInfo = null
