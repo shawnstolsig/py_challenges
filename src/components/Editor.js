@@ -142,14 +142,16 @@ function Editor(props) {
             // enable pyodide in state
             stableDispatch(initPyodide())
         });
+
     }, [stableDispatch])
 
-    // load piodide and hook into browser console on initial render
+    // load piodide and hook into browser console on initial render, if not already loaded
     React.useEffect(() => {
-        loadPython()
-        // Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
-        Hook(window.console, (log) => stableDispatch(addLog(log)))
-    }, [stableDispatch, loadPython])
+        if (!pyodideLoaded) {
+            loadPython()
+            Hook(window.console, (log) => stableDispatch(addLog(log)))
+        }
+    }, [stableDispatch, loadPython, pyodideLoaded])
 
     // update state whenever challenge changes
     React.useEffect(() => {
@@ -163,13 +165,13 @@ function Editor(props) {
         setOpenSnippetDialog(false)
         setCodeName('')
         setOpenSnippetId(null)
-        
+
         // clear previous python history
         clearPythonHistory()
     }, [startingCode, clearPythonHistory])
 
     // editor load function (maybe do something else here with the UI?)
-    const onEditorLoad = () => console.log("Text editor has loaded.")
+    const onEditorLoad = () => { }
 
     // filter console logs.  ommited: 'warn'
     const visibleLogTypes = [
@@ -246,12 +248,12 @@ function Editor(props) {
 
         // if tests pass
         if (combinedTestsPassed) {
-            
+
             // print message to console
             console.log("~~~~~   Challenge completed!  ~~~~~")
 
             // automatically mark challenge as complete if logged in
-            if(user){
+            if (user) {
                 addCompletion()
             }
 
@@ -309,7 +311,14 @@ function Editor(props) {
 
     // for getting relevant code snippets
     const getChallengeSnippets = () => {
-        return allUserSnippets.filter((s) => s.challenge === challengeId)
+        // get all snippets applicable to this challenge
+        const allChallengeSnippets = allUserSnippets.filter((s) => s.challenge === challengeId)
+        // if there is a loaded solution, filter this out so that you can't delete the open solution
+        if(loadedSolution){
+            return allChallengeSnippets.filter((s) => s.id !== loadedSolution.id)
+        }
+        // if no loaded solution, return allChallengeSnippets
+        return allChallengeSnippets
     }
 
     // for getting relevent completion data
@@ -506,24 +515,27 @@ function Editor(props) {
                     <DialogContentText>
                         Select saved code from list below.
                     </DialogContentText>
-                    {getChallengeSnippets().length === 0 && 
+                    {getChallengeSnippets().length === 0 && loadedSolution &&
+                        <Typography variant="caption">(the only saved solution is currently open)</Typography>
+                    }
+                    {getChallengeSnippets().length === 0 && !loadedSolution &&
                         <Typography variant="caption">(no saved solutions for this challenge)</Typography>
                     }
                     <List>
                         {
-                            getChallengeSnippets().map((snippet) =>
+                            getChallengeSnippets().map((snippet) => 
                                 <ListItem
                                     key={snippet.id}
                                     selected={openSnippetId === snippet.id}
                                     onClick={() => setOpenSnippetId(snippet.id)}
                                     button>
-                                    <ListItemText 
-                                        primary={snippet.title} 
-                                        secondary={readableDate(snippet.date_updated)} 
-                                        />
+                                    <ListItemText
+                                        primary={snippet.title}
+                                        secondary={readableDate(snippet.date_updated)}
+                                    />
                                     <ListItemSecondaryAction>
-                                        <IconButton 
-                                            edge="end" 
+                                        <IconButton
+                                            edge="end"
                                             aria-label="delete"
                                             onClick={() => deleteSnippet(snippet.id)}>
                                             <DeleteIcon />
