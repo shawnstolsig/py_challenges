@@ -18,7 +18,7 @@ import {
 // project imports
 import challengeData from '../content/challenges'
 import Editor from './Editor'
-import { handleLoadChallenge, handleCloseChallenge } from '../actions/challenge'
+import { loadChallenge } from '../actions/challenge'
 
 // set up classes for styles
 const useStyles = makeStyles((theme) => ({
@@ -28,17 +28,17 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function Challenge({ dispatch, challenge, completion, snippets }) {
+function Challenge({ dispatch, challenge }) {
   // hooks and state
   const classes = useStyles()
 
   // get challenge info, using url parameter for id
-  const { id, name, description, prompt, startingCode, tests } = challenge
+  const { name, description, prompt } = challenge
 
   // push all challenge info to store
   React.useEffect(() => {
-    dispatch(handleLoadChallenge({ challenge, completion, snippets }))
-  }, [challenge])
+    dispatch(loadChallenge(challenge))
+  }, [dispatch, challenge])
 
   return (
     <div>
@@ -100,31 +100,10 @@ function Challenge({ dispatch, challenge, completion, snippets }) {
 
 function mapStateToProps(state, { match }) {
 
-  // grab challenge data itself
   const challenge = challengeData[match.params.id]
-  
-  // check if authedUser
-  if (state.authedUser) {
-
-    // grab user's data, which has been loaded by auth modules
-    const allCompletedChallenges = state.authedUser.completedChallenges
-    const allUserSnippets = state.authedUser.snippets
-
-    // filter down to only those applicable to current challenge
-    const completion = allCompletedChallenges.filter((c) => c.challenge === match.params.id)[0]
-
-    return {
-      challenge,
-      completion,
-    }
-
-  }
-  
-  // if not logged in
+   
   return {
     challenge, 
-    completion: null,
-    snippets: []
   }
 }
 

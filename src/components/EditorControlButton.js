@@ -29,6 +29,7 @@ function EditorControlButton({ text, icon, color="primary", style={}, onClick, d
                     startIcon={icon}
                     color={color}
                     style={style}
+                    size="small"
                     >{text}
                 </Button>
                 :  <Tooltip title={text}>

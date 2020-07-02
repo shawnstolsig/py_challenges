@@ -69,6 +69,7 @@ export default function authReducer(state = null, action) {
       state.snippets.forEach((x) => {
         if(x.id === action.id){
           x.code = action.code
+          x.date_updated = action.date_updated
         }
       })
       return {
@@ -78,7 +79,7 @@ export default function authReducer(state = null, action) {
     case DELETE_SNIPPET:
       return {
         ...state,
-        snippets: state.snippets.filter((x) => x.id != action.id)
+        snippets: state.snippets.filter((x) => x.id !== action.id)
       }
 
     default:

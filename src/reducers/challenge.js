@@ -1,9 +1,7 @@
 // Reducer function related to user authentication actions.
 
-import { LOGIN_USER, LOGOUT_USER } from '../actions/auth'
 import { 
   LOAD_CHALLENGE, 
-  CLOSE_CHALLENGE, 
   INIT_PYODIDE,
   CLEAR_LOGS,
   ADD_LOG
@@ -21,16 +19,7 @@ export default function challengeReducer(state = initialState, action) {
     case LOAD_CHALLENGE:
       return {
         ...state,    // for logs and pyodideLoaded
-        snippets: action.snippets,
-        completion: action.completion,
-        challenge: action.challenge,
-      }
-
-    // preserve status of pyodide and logs when editor is closed
-    case CLOSE_CHALLENGE:
-      return {
-        pyodideLoaded: state.pyodideLoaded,
-        logs: state.logs
+        ...action.challenge,
       }
 
     case INIT_PYODIDE:

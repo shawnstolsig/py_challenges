@@ -44,7 +44,7 @@ import {
     Delete as DeleteIcon
 } from '@material-ui/icons'
 import { red, green } from '@material-ui/core/colors'
-import { Hook, Console, Decode } from 'console-feed'
+import { Hook, Console } from 'console-feed'
 import { connect } from 'react-redux'
 
 // project imports
@@ -73,6 +73,8 @@ const useStyles = makeStyles((theme) => ({
 
 function Editor(props) {
     const classes = useStyles()
+
+    // handle state from store
     const {
         user,
         challenge,
@@ -83,44 +85,35 @@ function Editor(props) {
 
     let startingCode = ''
     let tests = null
-    let completion = null
     let challengeId = null
     if (challenge) {
         startingCode = challenge.startingCode
         tests = challenge.tests
-        completion = challenge.completion
         challengeId = challenge.id
     }
 
     let access = null
     let userId = null
     let allUserSnippets = []
+    let userCompletedChallenges = null
     if (user) {
         access = user.access
         userId = user.id
         allUserSnippets = user.snippets
+        userCompletedChallenges = user.completedChallenges
     }
 
     // state 
     const [code, setCode] = React.useState(startingCode)                    // where the user's code will go
     const [isCodeValid, setIsCodeValid] = React.useState(false)             // check user's code for before allowing tests
-    const [testsPassed, setTestsPassed] = React.useState(false)             // tests pass
     const [loadedSolution, setLoadedSolution] = React.useState(null)        // state for loaded solution
-    const [completionData, setCompletionData] = React.useState(completion)
-    const [codeNameDialog, setCodeNameDialog] = React.useState(false)
-    const [openSnippetDialog, setOpenSnippetDialog] = React.useState(false)
-    const [codeName, setCodeName] = React.useState('')
-    const [openSnippetId, setOpenSnippetId] = React.useState(null)
+    const [codeNameDialog, setCodeNameDialog] = React.useState(false)       // flag for controlling saveAs dialog
+    const [openSnippetDialog, setOpenSnippetDialog] = React.useState(false) // flag for controlling open dialog
+    const [codeName, setCodeName] = React.useState('')                      // state for new snippet name (saving as)
+    const [openSnippetId, setOpenSnippetId] = React.useState(null)          // state for old snipped id (opening)
 
-    // load piodide and hook into browser console on initial render
-    React.useEffect(() => {
-        loadPython()
-        // Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
-        Hook(window.console, (log) => dispatch(addLog(log)))
-    }, [])
-
-    // create a memoized version of clearPythonHistory so that it persists across renders 
-    // this will prevent any re-renders, as it is a dependency of the useEffect below
+    // useCallback hooks
+    const stableDispatch = React.useCallback(dispatch, [])
     const clearPythonHistory = React.useCallback(() => {
 
         // only clear python history if pyodide is already loaded 
@@ -134,18 +127,46 @@ function Editor(props) {
         }
     }, [pyodideLoaded])
 
+    // load python interpreter. re-loaded after each code execution to clear history
+    const loadPython = React.useCallback(() => {
+
+        // load new python instance
+        languagePluginLoader.then(() => {
+
+            // print out the current version
+            console.log(pyodide.runPython('import sys\nsys.version'));
+
+            // store the default objects for later use
+            pyodide.runPython('pyodide_dir = dir()')
+
+            // enable pyodide in state
+            stableDispatch(initPyodide())
+        });
+    }, [stableDispatch])
+
+    // load piodide and hook into browser console on initial render
+    React.useEffect(() => {
+        loadPython()
+        // Hook(window.console, (log) => setLogs((logs) => [...logs, Decode(log)]))
+        Hook(window.console, (log) => stableDispatch(addLog(log)))
+    }, [stableDispatch, loadPython])
+
     // update state whenever challenge changes
     React.useEffect(() => {
-        setLoadedSolution(null)
+        // reset info for current challenge
         setCode(startingCode)
+        setLoadedSolution(null)
         setIsCodeValid(false)
-        setTestsPassed(false)
-        clearPythonHistory()
-        setCompletionData(completion)
+
+        // clear dialog and input state
         setCodeNameDialog(false)
         setOpenSnippetDialog(false)
         setCodeName('')
-    }, [startingCode, completion, clearPythonHistory])
+        setOpenSnippetId(null)
+        
+        // clear previous python history
+        clearPythonHistory()
+    }, [startingCode, clearPythonHistory])
 
     // editor load function (maybe do something else here with the UI?)
     const onEditorLoad = () => console.log("Text editor has loaded.")
@@ -160,23 +181,6 @@ function Editor(props) {
         'result'
     ]
 
-    // load python interpreter. re-loaded after each code execution to clear history
-    const loadPython = () => {
-
-        // load new python instance
-        languagePluginLoader.then(() => {
-
-            // print out the current version
-            console.log(pyodide.runPython('import sys\nsys.version'));
-
-            // store the default objects for later use
-            pyodide.runPython('pyodide_dir = dir()')
-
-            // enable pyodide in state
-            dispatch(initPyodide())
-        });
-    }
-
     // command for clearing console
     const clearConsole = () => {
         dispatch(clearLogs())
@@ -187,7 +191,6 @@ function Editor(props) {
     const resetCode = () => {
         setCode(startingCode)       // re-insert staring code
         setIsCodeValid(false)       // reset code validation
-        setTestsPassed(false)       // reset tests
         clearPythonHistory()        // clear python terminal history
         console.log("Code reset.")
     }
@@ -241,15 +244,20 @@ function Editor(props) {
             console.log(`Test: ${challengeTests[x].name} - ${result ? "Passed" : "Failed"}`)
         })
 
-        // print message regarding completion/failure of challenge
+        // if tests pass
         if (combinedTestsPassed) {
+            
+            // print message to console
             console.log("~~~~~   Challenge completed!  ~~~~~")
+
+            // automatically mark challenge as complete if logged in
+            if(user){
+                addCompletion()
+            }
+
         } else {
             console.log(">>> Your code does not solve the challenge.  Please try again.")
         }
-
-        // record results to state
-        setTestsPassed(combinedTestsPassed)
 
         // reset code validation button
         setIsCodeValid(false)
@@ -290,7 +298,7 @@ function Editor(props) {
             title: selectedSnippet.title
         })
         setCode(selectedSnippet.code)
-        console.log(`${selectedSnippet.title} loaded!`)
+        console.log(`"${selectedSnippet.title}" code loaded!`)
         handleDialogClose()
     }
 
@@ -304,33 +312,56 @@ function Editor(props) {
         return allUserSnippets.filter((s) => s.challenge === challengeId)
     }
 
+    // for getting relevent completion data
+    const getCompletion = () => {
+        return userCompletedChallenges.filter((c) => c.challenge === challengeId)[0]
+    }
+
     // mark challenge as complete
     const toggleCompletion = () => {
+        let challengeCompleted = getCompletion()
+
         // if challenge is completed, then delete completion entry
-        if (completionData) {
-            dispatch(handleRemoveCompletion(completionData.id, access, setCompletionData))
+        if (challengeCompleted) {
+            removeCompletion(challengeCompleted.id)
         }
         // if challenge is not completed, then post completion
         else {
-            dispatch(handleCreateCompletion({
-                userId: user.id,
-                challengeId: challenge.id,
-            }, access, setCompletionData))
+            addCompletion()
         }
+    }
+
+    // mark the challenge as completed
+    const addCompletion = () => {
+        dispatch(handleCreateCompletion({
+            userId,
+            challengeId,
+        }, access))
+    }
+
+    // remove completion from challenge
+    const removeCompletion = (id) => {
+        dispatch(handleRemoveCompletion(id, access))
+    }
+
+    // helper function for getting readable date/time string
+    const readableDate = (timestamp) => {
+        let str = new Date(timestamp).toLocaleString()
+        return str
     }
 
     return (
         <Grid container spacing={1}>
 
             {/* Left side controls: for running/testing code */}
-            <Grid item xs={6}>
+            <Grid item xs={8}>
                 <Grid container justify="flex-start" spacing={1}>
                     <Grid item>
                         <EditorControlButton
                             onClick={runCode}
                             disabled={!pyodideLoaded}
                             icon={<PlayArrowIcon />}
-                            text="Run Code"
+                            text="Run"
                         />
                     </Grid>
                     <Grid item>
@@ -338,7 +369,7 @@ function Editor(props) {
                             onClick={runTests}
                             disabled={!isCodeValid}
                             icon={<AssignmentTurnedInIcon />}
-                            text="Run Tests"
+                            text="Test"
                         />
                     </Grid>
                     {/* Only show save and "mark completed" buttons if logged in */}
@@ -367,12 +398,12 @@ function Editor(props) {
                                 />
                             </Grid>
                             <Grid item>
-                                {completionData
+                                {getCompletion()
                                     ? <EditorControlButton
                                         onClick={toggleCompletion}
                                         icon={<CheckBoxIcon />}
                                         style={{ color: 'white', background: green[500] }}
-                                        text="Completed"
+                                        text="Completed. Reset?"
                                     />
                                     : <EditorControlButton
                                         onClick={toggleCompletion}
@@ -389,7 +420,7 @@ function Editor(props) {
             </Grid>
 
             {/* Ride side controls: editor/console settings */}
-            <Grid item xs={6}>
+            <Grid item xs={4}>
                 <Grid container justify="flex-end" spacing={1}>
                     <Grid item>
                         <EditorControlButton
@@ -486,7 +517,10 @@ function Editor(props) {
                                     selected={openSnippetId === snippet.id}
                                     onClick={() => setOpenSnippetId(snippet.id)}
                                     button>
-                                    <ListItemText primary={snippet.title} secondary={snippet.date_updated} />
+                                    <ListItemText 
+                                        primary={snippet.title} 
+                                        secondary={readableDate(snippet.date_updated)} 
+                                        />
                                     <ListItemSecondaryAction>
                                         <IconButton 
                                             edge="end" 
@@ -519,13 +553,11 @@ function mapStateToProps(state) {
 
     // get relevant challenge state (startingCode, tests)
     let challengeInfo
-    if (state.challenge.challenge) {
-        const activeChallenge = state.challenge.challenge
+    if (state.challenge) {
         challengeInfo = {
-            id: activeChallenge.id,
-            startingCode: activeChallenge.startingCode,
-            tests: activeChallenge.tests,
-            completion: state.challenge.completion
+            id: state.challenge.id,
+            startingCode: state.challenge.startingCode,
+            tests: state.challenge.tests,
         }
     }
 
@@ -538,7 +570,8 @@ function mapStateToProps(state) {
             tabSize,
             darkModeEnabled,
             access,
-            snippets
+            snippets,
+            completedChallenges
         } = state.authedUser
         userInfo = {
             id,
@@ -546,7 +579,8 @@ function mapStateToProps(state) {
             tabSize,
             darkModeEnabled,
             access,
-            snippets
+            snippets,
+            completedChallenges
         }
     } else {
         userInfo = null
