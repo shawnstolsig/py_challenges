@@ -21,7 +21,7 @@ import {
 
 // project imports
 import ProgressItem from './ProgressItem'
-import challengeData from '../content/challenges'
+import challengeData from '../challenges'
 import { handleRemoveCompletion } from '../actions/challenge'
 
 const useStyles = makeStyles( (theme) => ({
@@ -39,8 +39,8 @@ function Home({ authedUser, challenges, completedIds, dispatch, access }) {
   }
   return (
     <Box>
-      <Typography variant="h3" align="center">Welcome to PyChallenges!</Typography>
-      <Typography variant="body1" align="center">A place to practice some common coding challenges, in Python.</Typography>
+      <Typography variant="h4" align="center">Welcome to PyChallenges!</Typography>
+      <Typography variant="body1" align="center">A place to practice some coding challenges, in Python.</Typography>
       <Divider />
       <Container>
       <Grid container spacing={1} className={classes.root} >
@@ -48,7 +48,7 @@ function Home({ authedUser, challenges, completedIds, dispatch, access }) {
           ?
           <React.Fragment>
             <Grid item xs={12}>
-              <Typography variant="h4" align="center">Your progress: {completedIds.length}/{Object.keys(challenges).length}</Typography>
+              <Typography variant="h5" align="center">Your progress: {completedIds.length}/{Object.keys(challenges).length}</Typography>
             </Grid>
             {Object.keys(challenges).map((c) => (
               <Grid item xs={12} key={c} >

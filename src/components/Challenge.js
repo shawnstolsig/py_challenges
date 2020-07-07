@@ -16,7 +16,7 @@ import {
 } from '@material-ui/icons'
 
 // project imports
-import challengeData from '../content/challenges'
+import challengeData from '../challenges'
 import Editor from './Editor'
 import { loadChallenge } from '../actions/challenge'
 

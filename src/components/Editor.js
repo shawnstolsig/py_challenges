@@ -52,7 +52,6 @@ import { Link as RouterLink } from 'react-router-dom'
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
 import Loading from './Loading'
-
 import {
     handleCreateCompletion,
     handleRemoveCompletion,

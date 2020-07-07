@@ -28,7 +28,7 @@ import {
 
 // project imports
 import { handleLogoutUser } from '../actions/auth'
-import challengesData from '../content/challenges'
+import challengesData from '../challenges'
 
 // set a width for nav drawer
 const drawerWidth = 240;
