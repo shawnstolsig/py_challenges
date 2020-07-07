@@ -7,9 +7,11 @@ import {
     id: 'binarysearch',
     name: 'Binary Search',
     path: '/binarysearch',
+    reqFuncName: 'binary_search',
     description: 'Binary search is a basic yet efficient algorithm for finding the position of a specific element in a sorted list of items. To conduct a binary search, compare the item you are searching for to the middle item of the sorted list. If the middle item is lower, then you know the item you seek is in the upper half...this is where you will repeat your search. Continue dividing and comparing until you find the location of your item!',
     prompt: 'Given an input integer "n" and sorted list, implement a binary search algorithm to find the index of the input integer. Return the index.  Do not use Python\'s built-in index() function.',
     tags: ['intermediate'],
+    forbiddenSubstring: ['index'],
     tests: (userFunc) => {
       return {
         returnsValue: {
@@ -34,7 +36,7 @@ import {
         },
       }
     },
-    startingCode: `def binarySearch(n, sortedList):\n\t#your code here`,
+    startingCode: `def binary_search(n, sorted_list):\n\t#your code here`,
     pySolution:``,
   }
   

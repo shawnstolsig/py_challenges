@@ -7,9 +7,11 @@ const addition = {
   id: 'addition',
   name: 'Addition',
   path: '/addition',
+  reqFuncName: 'addition',
   description: 'A very simple coding challenge to get you started!',
   prompt: 'Write an "addition" function that returns the sum of two numbers.',
   tags: ['easy'],
+  forbiddenSubstring: [],
   tests: (userFunc) => {
     return {
       returnsValue: {

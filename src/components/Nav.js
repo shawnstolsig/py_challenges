@@ -5,7 +5,7 @@
 // package imports 
 import React from 'react'
 import { connect } from 'react-redux'
-import { Link as RouterLink } from 'react-router-dom'
+import { NavLink as RouterLink } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core/styles';
 import {
   AppBar,
@@ -70,15 +70,19 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('xs')]: {
       display: 'none',
     },
+  },
+  active: {
+    color: theme.palette.primary.main
   }
 }));
 
 // a ListItemLink implementation for using ListItem and react-router-dom
 function ListItemLink(props) {
+  const classes = useStyles()
   const { icon, primary, to, closeDrawerFunc } = props;
 
   const renderLink = React.useMemo(
-    () => React.forwardRef((itemProps, ref) => <RouterLink to={to} ref={ref} {...itemProps} />),
+    () => React.forwardRef((itemProps, ref) => <RouterLink to={to} ref={ref} {...itemProps} activeClassName={classes.active}/>),
     [to],
   );
 

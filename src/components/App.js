@@ -11,7 +11,6 @@ import {
   Route
 } from 'react-router-dom'
 import {
-  Typography,
   Container
 } from '@material-ui/core'
 

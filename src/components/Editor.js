@@ -69,6 +69,11 @@ const useStyles = makeStyles((theme) => ({
         background: 'black',
         height: 500,
         overflow: 'auto'
+    },
+    hiddenButton: {
+        [theme.breakpoints.down('xs')]: {
+            display: 'none'
+            },
     }
 }))
 
@@ -178,9 +183,6 @@ function Editor(props) {
         clearPythonHistory()
     }, [startingCode, clearPythonHistory])
 
-    // editor load function (maybe do something else here with the UI?)
-    const onEditorLoad = () => { }
-
     // filter console logs.  ommited: 'warn'
     const visibleLogTypes = [
         'log',
@@ -213,12 +215,21 @@ function Editor(props) {
             alert("Use of eval() is not allowed.")
             return
         }
+
+        // check to make sure no other forbidden functions are used
+        for (const element of challenge.forbiddenSubstring) {
+            if (code.includes(element)) {
+                alert(`Use of ${element}() is not allowed.`)
+                return
+            }
+        }
+        
         // run code to make sure it builds (any error messages will print to console)
         pyodide.runPython(code)
 
         // validate the correctly named function exists for the challenge
-        if (pyodide.globals[challenge.id] === undefined) {
-            console.log(`Missing ${challenge.id}() function.`)
+        if (pyodide.globals[challenge.reqFuncName] === undefined) {
+            console.log(`Missing ${challenge.reqFuncName}() function.`)
             return
         }
 
@@ -322,7 +333,7 @@ function Editor(props) {
         // get all snippets applicable to this challenge
         const allChallengeSnippets = allUserSnippets.filter((s) => s.challenge === challengeId)
         // if there is a loaded solution, filter this out so that you can't delete the open solution
-        if(loadedSolution){
+        if (loadedSolution) {
             return allChallengeSnippets.filter((s) => s.id !== loadedSolution.id)
         }
         // if no loaded solution, return allChallengeSnippets
@@ -433,7 +444,7 @@ function Editor(props) {
                         </React.Fragment>
                         :
                         <React.Fragment>
-                            <Button component={RouterLink} to="/login" size="small">
+                            <Button component={RouterLink} to="/login" size="small" className={classes.hiddenButton}>
                                 Login for more options...
                             </Button>
                         </React.Fragment>
@@ -472,7 +483,6 @@ function Editor(props) {
                     mode="python"
                     theme="github"
                     name="editor"
-                    onLoad={onEditorLoad}
                     onChange={(value) => setCode(value)}
                     fontSize={14}
                     showPrintMargin={true}
@@ -537,7 +547,7 @@ function Editor(props) {
                     }
                     <List>
                         {
-                            getChallengeSnippets().map((snippet) => 
+                            getChallengeSnippets().map((snippet) =>
                                 <ListItem
                                     key={snippet.id}
                                     selected={openSnippetId === snippet.id}
@@ -572,7 +582,7 @@ function Editor(props) {
             </Dialog>
 
             {/* Backdrop/progress while loading python */}
-            <Loading open={loadingBackdrop} text="Loading Python..."/>
+            <Loading open={loadingBackdrop} text="Loading Python..." />
 
         </Grid>
     )
@@ -587,6 +597,8 @@ function mapStateToProps(state) {
             id: state.challenge.id,
             startingCode: state.challenge.startingCode,
             tests: state.challenge.tests,
+            reqFuncName: state.challenge.reqFuncName,
+            forbiddenSubstring: state.challenge.forbiddenSubstring,
         }
     }
 
