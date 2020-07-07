@@ -18,6 +18,7 @@ import {
 // project imports
 import Nav from './Nav'
 import { handleAutoLogin } from '../actions/auth'
+import Loading from './Loading'
 
 // code splitting/performance: only load components when required
 const Home = React.lazy(() => import('./Home'))
@@ -50,7 +51,8 @@ function App({ dispatch }) {
         <Nav />
         <Container className={classes.content}>
           <div className={classes.toolbar} />
-          <React.Suspense fallback={<Typography variant="h5">Loading...</Typography>}>
+          {/* <React.Suspense fallback={<Typography variant="h5">Loading...</Typography>}> */}
+          <React.Suspense fallback={<Loading open={true} />}>
             <Switch>
               <Route exact path="/" component={Home} />
               <Route path="/login" component={Login} />

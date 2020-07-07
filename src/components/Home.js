@@ -12,8 +12,12 @@ import {
   Divider,
   Grid,
   Container,
-  Button
+  Button,
+  Link
 } from '@material-ui/core'
+import {
+  Link as RouterLink
+} from 'react-router-dom'
 
 // project imports
 import ProgressItem from './ProgressItem'
@@ -64,7 +68,9 @@ function Home({ authedUser, challenges, completedIds, dispatch, access }) {
           </React.Fragment>
           :
           <Grid item xs={12}>
-            <Typography variant="h4" align="center">Please login to see your current progress.</Typography>
+            <Typography variant="subtitle1" align="center">Please <Link component={RouterLink} to="/login">
+            login </Link> to see your current progress. <br /> Or select a challenge to the left and 
+            jump straight into coding!</Typography>
           </Grid>
         }
       </Grid>

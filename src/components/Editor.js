@@ -29,7 +29,7 @@ import {
     ListItemText,
     ListItemSecondaryAction,
     IconButton,
-    Typography
+    Typography,
 } from '@material-ui/core'
 import {
     CheckBoxOutlineBlank as CheckBoxOutlineBlankIcon,
@@ -46,10 +46,12 @@ import {
 import { red, green } from '@material-ui/core/colors'
 import { Hook, Console } from 'console-feed'
 import { connect } from 'react-redux'
+import { Link as RouterLink } from 'react-router-dom'
 
 // project imports
 import { languagePluginLoader } from '../pyodide/pyodide'
 import EditorControlButton from './EditorControlButton'
+import Loading from './Loading'
 
 import {
     handleCreateCompletion,
@@ -111,6 +113,7 @@ function Editor(props) {
     const [openSnippetDialog, setOpenSnippetDialog] = React.useState(false) // flag for controlling open dialog
     const [codeName, setCodeName] = React.useState('')                      // state for new snippet name (saving as)
     const [openSnippetId, setOpenSnippetId] = React.useState(null)          // state for old snipped id (opening)
+    const [loadingBackdrop, setLoadingBackdrop] = React.useState(false)     // state for managing backdrop while loading python
 
     // useCallback hooks
     const stableDispatch = React.useCallback(dispatch, [])
@@ -130,8 +133,14 @@ function Editor(props) {
     // load python interpreter. re-loaded after each code execution to clear history
     const loadPython = React.useCallback(() => {
 
+        // put backdrop over UI
+        setLoadingBackdrop(true)
+
         // load new python instance
         languagePluginLoader.then(() => {
+
+            // remove backdrop from UI
+            setLoadingBackdrop(false)
 
             // print out the current version
             console.log(pyodide.runPython('import sys\nsys.version'));
@@ -382,7 +391,7 @@ function Editor(props) {
                         />
                     </Grid>
                     {/* Only show save and "mark completed" buttons if logged in */}
-                    {user &&
+                    {user ?
                         <React.Fragment>
                             <Grid item>
                                 <EditorControlButton
@@ -422,6 +431,12 @@ function Editor(props) {
                                     />
                                 }
                             </Grid>
+                        </React.Fragment>
+                        :
+                        <React.Fragment>
+                            <Button component={RouterLink} to="/login" size="small">
+                                Login for more options...
+                            </Button>
                         </React.Fragment>
                     }
 
@@ -556,6 +571,9 @@ function Editor(props) {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Backdrop/progress while loading python */}
+            <Loading open={loadingBackdrop} text="Loading Python..."/>
 
         </Grid>
     )
