@@ -5,23 +5,88 @@
 // package imports
 import React from 'react'
 import { connect } from 'react-redux'
+import { makeStyles } from '@material-ui/core/styles'
 import {
+  Typography,
+  Box,
+  Divider,
+  Grid,
   Container,
-  Typography
+  Button
 } from '@material-ui/core'
 
-function Home() {
+// project imports
+import ProgressItem from './ProgressItem'
+import challengeData from '../content/challenges'
+import { handleRemoveCompletion } from '../actions/challenge'
+
+const useStyles = makeStyles( (theme) => ({
+  root: {
+    marginTop: theme.spacing(2)
+  }
+}))
+
+function Home({ authedUser, challenges, completedIds, dispatch, access }) {
+  const classes = useStyles()
+  const resetProgress = () => {
+    if(window.confirm("All challenges will be marked as incomplete.  Your previous code solutions will still be saved.  Continue?")){
+      authedUser.completedChallenges.forEach((c) => dispatch(handleRemoveCompletion(c.id, access)))
+    }
+  }
   return (
-    <Container>
-      <Typography variant="h1">Hello</Typography>
-    </Container>
+    <Box>
+      <Typography variant="h3" align="center">Welcome to PyChallenges!</Typography>
+      <Typography variant="body1" align="center">A place to practice some common coding challenges, in Python.</Typography>
+      <Divider />
+      <Container>
+      <Grid container spacing={1} className={classes.root} >
+        {authedUser
+          ?
+          <React.Fragment>
+            <Grid item xs={12}>
+              <Typography variant="h4" align="center">Your progress: {completedIds.length}/{Object.keys(challenges).length}</Typography>
+            </Grid>
+            {Object.keys(challenges).map((c) => (
+              <Grid item xs={12} key={c} >
+                <ProgressItem 
+                  challenge={challenges[c]} 
+                  status={completedIds.includes(c)}
+                  />
+              </Grid>
+            ))}
+            <Grid xs={5} item/>
+            <Grid xs={2} align="center" item>
+              <Button onClick={resetProgress} >
+                Reset? 
+              </Button>
+            </Grid>
+            <Grid xs={5} item/>
+          </React.Fragment>
+          :
+          <Grid item xs={12}>
+            <Typography variant="h4" align="center">Please login to see your current progress.</Typography>
+          </Grid>
+        }
+      </Grid>
+
+      </Container>
+
+    </Box>
   )
 }
 
 function mapStateToProps(state) {
-  // minimize the amount of state sent to component by doing data manipulation here
+  let completedIds = []
+  let access = null
+  if(state.authedUser){
+    completedIds = state.authedUser.completedChallenges.map((c) => c.challenge)
+    access = state.authedUser.access
+  } 
   return {
-    // return only the state you want this component to have
+    authedUser: state.authedUser,
+    challenges: challengeData,
+    completedIds,
+    access
   }
 }
 
