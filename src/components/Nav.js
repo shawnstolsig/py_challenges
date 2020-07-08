@@ -82,8 +82,13 @@ function ListItemLink(props) {
   const { icon, primary, to, closeDrawerFunc } = props;
 
   const renderLink = React.useMemo(
-    () => React.forwardRef((itemProps, ref) => <RouterLink to={to} ref={ref} {...itemProps} activeClassName={classes.active}/>),
-    [to],
+    () => React.forwardRef((itemProps, ref) => 
+      <RouterLink 
+        to={to} 
+        ref={ref} 
+        {...itemProps} 
+        activeClassName={classes.active}/>
+      ),[to, classes.active],
   );
 
   return (

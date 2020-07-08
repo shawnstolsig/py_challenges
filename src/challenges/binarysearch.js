@@ -16,23 +16,23 @@ import {
       return {
         returnsValue: {
           name: "Function returns a value? ",
-          result: () => assertIsNotUndefined(userFunc(1, [0,1,2]))
+          result: () => assertIsNotUndefined(userFunc([0,1,2], 0, 2, 1))
         },
         assertEqualsLengthOne: {
-        name: "Returned index is correct when list contains only one item? ",
-        result: () => assertEquals(userFunc(1, [1]), 0)
+          name: "Returned index is correct when list contains only one item? ",
+          result: () => assertEquals(userFunc([1], 0, 0, 1), 0)
         },
         assertEqualsPostiveNumbers: {
           name: "Returned index is correct for a list of only positive numbers? ",
-          result: () => assertEquals(userFunc(1, [0,1,2]), 1)
+          result: () => assertEquals(userFunc([0,1,2], 0, 2, 1), 1)
         },
         assertEqualsNegativeNumbers: {
           name: "Returned index is correct when list contains only negative numbers? ",
-          result: () => assertEquals(userFunc(-3, [-5,-3,-1]), 1)
+          result: () => assertEquals(userFunc([-5,-3,-1], 0, 2, -3), 1)
         },
         assertEqualsMixedNumbers: {
           name: "Returned index is correct when list contains both positive and negative numbers? ",
-          result: () => assertEquals(userFunc(1, [-10,-5,0,1,11]), 3)
+          result: () => assertEquals(userFunc([-10,-5,0,1,11], 0, 4, 1), 3)
         },
       }
     },

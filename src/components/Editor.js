@@ -248,7 +248,7 @@ function Editor(props) {
         let combinedTestsPassed = true
 
         // get tests object.  this will have each test as a separate key
-        let challengeTests = tests(pyodide.globals[challenge.id])
+        let challengeTests = tests(pyodide.globals[challenge.reqFuncName])
 
         // iterate through all tests and print passed/failed message
         Object.keys(challengeTests).forEach((x) => {
@@ -273,7 +273,10 @@ function Editor(props) {
 
             // automatically mark challenge as complete if logged in
             if (user) {
-                addCompletion()
+                // check to see if completion already exists
+                if(user.completedChallenges.filter((c) => c.challenge === challenge.id).length === 0){
+                    addCompletion()
+                }
             }
 
         } else {
