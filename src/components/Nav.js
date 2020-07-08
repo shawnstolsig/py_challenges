@@ -72,8 +72,9 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   active: {
-    color: theme.palette.primary.main
-  }
+    color: theme.palette.primary.light,
+    fontWeight: "bold"
+  },
 }));
 
 // a ListItemLink implementation for using ListItem and react-router-dom

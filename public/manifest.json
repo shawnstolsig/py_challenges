@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "PyChallenges",
+  "name": "A place to practice common coding challenges in Python.",
   "icons": [
     {
       "src": "favicon.ico",

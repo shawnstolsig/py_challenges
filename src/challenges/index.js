@@ -3,10 +3,14 @@
 
 import addition from './addition'
 import fizzbuzz from './fizzbuzz'
+import palindrome from './palindrome'
+import missingnumbers from './missingnumbers'
 import binarysearch from './binarysearch'
 
 const challenges = {
   addition,
+  palindrome,
+  missingnumbers,
   fizzbuzz,
   binarysearch,
 }

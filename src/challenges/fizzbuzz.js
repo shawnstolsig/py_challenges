@@ -9,7 +9,7 @@ const fizzbuzz = {
   path: '/fizzbuzz',
   reqFuncName: 'fizz_buzz',
   description: 'A classic programming challenge designed to test basic programming abilities.',
-  prompt: 'Write a function that returns an array containing the numbers from 1 to 100, with the following exceptions: 1) for multiples of three, add “Fizz” instead of the number 2) for the multiples of five, add “Buzz” instead of the number and 3) for numbers that are multiples of both three and five add “FizzBuzz”.',
+  prompt: 'Write a function that returns an array containing 100 elements.  These elements will be the numbers from 1 to 100, with the following exceptions: 1) for multiples of three, add “Fizz” instead of the number 2) for the multiples of five, add “Buzz” instead of the number and 3) for numbers that are multiples of both three and five add “FizzBuzz”.',
   tags: ['easy'],
   forbiddenSubstring: [],
   tests: (userFunc) => {

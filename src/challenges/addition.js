@@ -37,9 +37,7 @@ const addition = {
     }
   },
   startingCode: `def addition(a,b):\n\t# your code here`,
-  pySolution:
-`def addition(a,b):
-  return a + b`,
+  pySolution:`def addition(a,b):\n\treturn a + b`,
 }
 
 export default addition
