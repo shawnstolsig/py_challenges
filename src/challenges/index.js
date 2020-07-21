@@ -9,9 +9,9 @@ import binarysearch from './binarysearch'
 
 const challenges = {
   addition,
+  fizzbuzz,
   palindrome,
   missingnumbers,
-  fizzbuzz,
   binarysearch,
 }
 

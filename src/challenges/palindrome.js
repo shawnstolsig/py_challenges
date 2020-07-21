@@ -30,18 +30,18 @@ import {
           name: "Returns true for multiple-word palindrome? ",
           result: () => assertEquals(userFunc('do geese see god'), true)
         },
-        assertEqualsTrueMultipleWords: {
+        assertEqualsFalseMultipleWords: {
           name: "Returns false for multiple-word non-palindrome? ",
           result: () => assertEquals(userFunc('this is not a palindrome'), false)
         },
         assertEqualsTrueCapitalLetters: {
           name: "Returns true for palindrome with capital letters? ",
-          result: () => assertEquals(userFunc('rAcEcAr'), true)
+          result: () => assertEquals(userFunc('racecAr'), true)
         },
       }
     },
     startingCode: `def check_palindrome(s):\n\t# your code here`,
-    pySolution:`def check_palindrome(s):\n\t# remove whitespace\n\ts = s.replace(' ', '')\n\treturn s == s[::-1]`,
+    pySolution:`def check_palindrome(s):\n\t# remove capital letters\n\ts = s.lower()\n\t# remove whitespace\n\ts = s.replace(' ', '')\n\treturn s == s[::-1]`,
   }
   
   export default palindrome
