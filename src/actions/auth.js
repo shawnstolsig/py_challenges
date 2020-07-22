@@ -70,6 +70,7 @@ export function handleLoginUser({ username, password }, history) {
         })
         .catch((error) => {
           console.log("Error retrieving user info: ")
+          console.log(error)
           console.log(error.response)
         })
 
